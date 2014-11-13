@@ -406,34 +406,34 @@ containing a value of this type.
         public static final int powered_by_google_light=0x7f02001e;
     }
     public static final class id {
-        public static final int LinearLayout=0x7f060015;
-        public static final int action_settings=0x7f060018;
-        public static final int book_now=0x7f060010;
-        public static final int button1=0x7f060017;
-        public static final int buyButton=0x7f06000a;
-        public static final int buy_now=0x7f06000f;
-        public static final int buy_with_google=0x7f06000e;
-        public static final int classic=0x7f060011;
-        public static final int editText1=0x7f060016;
-        public static final int grayscale=0x7f060012;
-        public static final int holo_dark=0x7f060005;
-        public static final int holo_light=0x7f060006;
-        public static final int hybrid=0x7f060004;
-        public static final int map=0x7f060014;
-        public static final int match_parent=0x7f06000c;
-        public static final int monochrome=0x7f060013;
-        public static final int none=0x7f060000;
-        public static final int normal=0x7f060001;
-        public static final int production=0x7f060007;
-        public static final int sandbox=0x7f060008;
-        public static final int satellite=0x7f060002;
-        public static final int selectionDetails=0x7f06000b;
-        public static final int strict_sandbox=0x7f060009;
-        public static final int terrain=0x7f060003;
-        public static final int wrap_content=0x7f06000d;
+        public static final int LinearLayout=0x7f070015;
+        public static final int action_settings=0x7f070018;
+        public static final int book_now=0x7f070010;
+        public static final int button1=0x7f070017;
+        public static final int buyButton=0x7f07000a;
+        public static final int buy_now=0x7f07000f;
+        public static final int buy_with_google=0x7f07000e;
+        public static final int classic=0x7f070011;
+        public static final int editText1=0x7f070016;
+        public static final int grayscale=0x7f070012;
+        public static final int holo_dark=0x7f070005;
+        public static final int holo_light=0x7f070006;
+        public static final int hybrid=0x7f070004;
+        public static final int map=0x7f070014;
+        public static final int match_parent=0x7f07000c;
+        public static final int monochrome=0x7f070013;
+        public static final int none=0x7f070000;
+        public static final int normal=0x7f070001;
+        public static final int production=0x7f070007;
+        public static final int sandbox=0x7f070008;
+        public static final int satellite=0x7f070002;
+        public static final int selectionDetails=0x7f07000b;
+        public static final int strict_sandbox=0x7f070009;
+        public static final int terrain=0x7f070003;
+        public static final int wrap_content=0x7f07000d;
     }
     public static final class integer {
-        public static final int google_play_services_version=0x7f070000;
+        public static final int google_play_services_version=0x7f080000;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;
@@ -442,114 +442,108 @@ containing a value of this type.
         public static final int main=0x7f0a0000;
     }
     public static final class string {
-        public static final int action_settings=0x7f040021;
-        public static final int app_name=0x7f040020;
-        public static final int auth_client_needs_enabling_title=0x7f040001;
-        public static final int auth_client_needs_installation_title=0x7f040002;
-        public static final int auth_client_needs_update_title=0x7f040003;
-        public static final int auth_client_play_services_err_notification_msg=0x7f040004;
-        public static final int auth_client_requested_by_msg=0x7f040005;
-        public static final int auth_client_using_bad_version_title=0x7f040000;
-        public static final int button1=0x7f040023;
-        public static final int button2=0x7f040024;
-        public static final int button3=0x7f040025;
-        public static final int button4=0x7f040026;
+        public static final int action_settings=0x7f06001b;
+        public static final int app_name=0x7f06001a;
+        public static final int button1=0x7f06001d;
+        public static final int button2=0x7f06001e;
+        public static final int button3=0x7f06001f;
+        public static final int button4=0x7f060020;
         /**  Button in confirmation dialog to enable Google Play services.  Clicking it
         will direct user to application settings of Google Play services where they
         can enable it [CHAR LIMIT=40] 
          */
-        public static final int common_google_play_services_enable_button=0x7f040011;
+        public static final int common_google_play_services_enable_button=0x7f06000b;
         /**  Message in confirmation dialog informing user they need to enable
         Google Play services in application settings [CHAR LIMIT=NONE] 
          */
-        public static final int common_google_play_services_enable_text=0x7f040010;
+        public static final int common_google_play_services_enable_text=0x7f06000a;
         /**  Title of confirmation dialog informing user they need to enable
         Google Play services in application settings [CHAR LIMIT=40] 
          */
-        public static final int common_google_play_services_enable_title=0x7f04000f;
+        public static final int common_google_play_services_enable_title=0x7f060009;
         /**   Requested by string saying which app requested the notification. [CHAR LIMIT=42] 
          */
-        public static final int common_google_play_services_error_notification_requested_by_msg=0x7f04000a;
+        public static final int common_google_play_services_error_notification_requested_by_msg=0x7f060004;
         /**  Button in confirmation dialog for installing Google Play services [CHAR LIMIT=40] 
          */
-        public static final int common_google_play_services_install_button=0x7f04000e;
+        public static final int common_google_play_services_install_button=0x7f060008;
         /**  (For phones) Message in confirmation dialog informing user that
         they need to install Google Play services (from Play Store) [CHAR LIMIT=NONE] 
          */
-        public static final int common_google_play_services_install_text_phone=0x7f04000c;
+        public static final int common_google_play_services_install_text_phone=0x7f060006;
         /**  (For tablets) Message in confirmation dialog informing user that
         they need to install Google Play services (from Play Store) [CHAR LIMIT=NONE] 
          */
-        public static final int common_google_play_services_install_text_tablet=0x7f04000d;
+        public static final int common_google_play_services_install_text_tablet=0x7f060007;
         /**  Title of confirmation dialog informing user that they need to install
         Google Play services (from Play Store) [CHAR LIMIT=40] 
          */
-        public static final int common_google_play_services_install_title=0x7f04000b;
+        public static final int common_google_play_services_install_title=0x7f060005;
         /**  Message in confirmation dialog informing the user that they provided an invalid account. [CHAR LIMIT=NONE] 
          */
-        public static final int common_google_play_services_invalid_account_text=0x7f040017;
+        public static final int common_google_play_services_invalid_account_text=0x7f060011;
         /**  Title of confirmation dialog informing the user that they provided an invalid account. [CHAR LIMIT=40] 
          */
-        public static final int common_google_play_services_invalid_account_title=0x7f040016;
+        public static final int common_google_play_services_invalid_account_title=0x7f060010;
         /**   Title for notification shown when GooglePlayServices needs to be enabled for an
         application to work. [CHAR LIMIT=70] 
          */
-        public static final int common_google_play_services_needs_enabling_title=0x7f040009;
+        public static final int common_google_play_services_needs_enabling_title=0x7f060003;
         /**  Message in confirmation dialog informing the user that a network error occurred. [CHAR LIMIT=NONE] 
          */
-        public static final int common_google_play_services_network_error_text=0x7f040015;
+        public static final int common_google_play_services_network_error_text=0x7f06000f;
         /**  Title of confirmation dialog informing the user that a network error occurred. [CHAR LIMIT=40] 
          */
-        public static final int common_google_play_services_network_error_title=0x7f040014;
+        public static final int common_google_play_services_network_error_title=0x7f06000e;
         /**   Title for notification shown when GooglePlayServices needs to be installed
         for an application to work. [CHAR LIMIT=70] 
          */
-        public static final int common_google_play_services_notification_needs_installation_title=0x7f040007;
+        public static final int common_google_play_services_notification_needs_installation_title=0x7f060001;
         /**   Title for notification shown when GooglePlayServices needs to be updated for an
         application to work. [CHAR LIMIT=70] 
          */
-        public static final int common_google_play_services_notification_needs_update_title=0x7f040008;
+        public static final int common_google_play_services_notification_needs_update_title=0x7f060002;
         /**   Title for notification shown when GooglePlayServices is unavailable [CHAR LIMIT=42] 
          */
-        public static final int common_google_play_services_notification_ticker=0x7f040006;
+        public static final int common_google_play_services_notification_ticker=0x7f060000;
         /**  Message in confirmation dialog informing user there is an unknown issue in Google Play
         services [CHAR LIMIT=NONE] 
          */
-        public static final int common_google_play_services_unknown_issue=0x7f040018;
+        public static final int common_google_play_services_unknown_issue=0x7f060012;
         /**  Message in confirmation dialog informing user that date on the device is not correct,
     causing certificate checks to fail. [CHAR LIMIT=NONE] 
          */
-        public static final int common_google_play_services_unsupported_date_text=0x7f04001b;
+        public static final int common_google_play_services_unsupported_date_text=0x7f060015;
         /**  Message in confirmation dialog informing user that Google Play services is not supported on their device [CHAR LIMIT=NONE] 
          */
-        public static final int common_google_play_services_unsupported_text=0x7f04001a;
+        public static final int common_google_play_services_unsupported_text=0x7f060014;
         /**  Title of confirmation dialog informing user that Google Play services is not supported on their device [CHAR LIMIT=40] 
          */
-        public static final int common_google_play_services_unsupported_title=0x7f040019;
+        public static final int common_google_play_services_unsupported_title=0x7f060013;
         /**  Button in confirmation dialog for updating Google Play services [CHAR LIMIT=40] 
          */
-        public static final int common_google_play_services_update_button=0x7f04001c;
+        public static final int common_google_play_services_update_button=0x7f060016;
         /**  Message in confirmation dialog informing user that they need to update
         Google Play services (from Play Store) [CHAR LIMIT=NONE] 
          */
-        public static final int common_google_play_services_update_text=0x7f040013;
+        public static final int common_google_play_services_update_text=0x7f06000d;
         /**  Title of confirmation dialog informing user that they need to update
         Google Play services (from Play Store) [CHAR LIMIT=40] 
          */
-        public static final int common_google_play_services_update_title=0x7f040012;
+        public static final int common_google_play_services_update_title=0x7f06000c;
         /**  Sign-in button text [CHAR LIMIT=15] 
          */
-        public static final int common_signin_button_text=0x7f04001d;
+        public static final int common_signin_button_text=0x7f060017;
         /**  Long form sign-in button text [CHAR LIMIT=30] 
          */
-        public static final int common_signin_button_text_long=0x7f04001e;
-        public static final int disable_point=0x7f040028;
-        public static final int enable_point=0x7f040027;
-        public static final int hello_world=0x7f040022;
+        public static final int common_signin_button_text_long=0x7f060018;
+        public static final int disable_point=0x7f060022;
+        public static final int enable_point=0x7f060021;
+        public static final int hello_world=0x7f06001c;
         /**  Text on a placeholder buy button when Google Play services is not
          available or up-to-date 
          */
-        public static final int wallet_buy_button_place_holder=0x7f04001f;
+        public static final int wallet_buy_button_place_holder=0x7f060019;
     }
     public static final class style {
         /** 
@@ -573,20 +567,21 @@ containing a value of this type.
     
  API 14 theme customizations can go here. 
          */
-        public static final int AppBaseTheme=0x7f080004;
+        public static final int AppBaseTheme=0x7f040005;
         /**  Application theme. 
  All customizations that are NOT specific to a particular API-level can go here. 
          */
-        public static final int AppTheme=0x7f080005;
-        public static final int WalletFragmentDefaultButtonTextAppearance=0x7f080002;
-        public static final int WalletFragmentDefaultDetailsHeaderTextAppearance=0x7f080001;
-        public static final int WalletFragmentDefaultDetailsTextAppearance=0x7f080000;
+        public static final int AppTheme=0x7f040006;
+        public static final int Theme_IAPTheme=0x7f040000;
+        public static final int WalletFragmentDefaultButtonTextAppearance=0x7f040003;
+        public static final int WalletFragmentDefaultDetailsHeaderTextAppearance=0x7f040002;
+        public static final int WalletFragmentDefaultDetailsTextAppearance=0x7f040001;
         /** 
          Default style of the wallet fragment that will be used if not set explicitly
          when fragment is created
     
          */
-        public static final int WalletFragmentDefaultStyle=0x7f080003;
+        public static final int WalletFragmentDefaultStyle=0x7f040004;
     }
     public static final class styleable {
         /** Attributes that can be used with a AdsAttrs.

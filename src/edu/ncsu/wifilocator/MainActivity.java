@@ -15,7 +15,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapView;
@@ -48,6 +49,7 @@ import android.widget.TextView;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnInitListener;
 import android.content.Intent;
+import android.graphics.Color;
 
 import java.util.Locale;
 
@@ -71,6 +73,7 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
     private int MY_DATA_CHECK_CODE = 0;
 	
 	static final LatLng CENTER = new LatLng(35.769301, -78.676406);
+	LatLng lines[] = new LatLng[100];
 	private GoogleMap map;
 	private MainApplication application;
 	private int NUM_BUTTONS = 4;
@@ -136,7 +139,7 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
     		//check for TTS data
             Intent checkTTSIntent = new Intent();
             checkTTSIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
-            startActivityForResult(checkTTSIntent, MY_DATA_CHECK_CODE);
+           // startActivityForResult(checkTTSIntent, MY_DATA_CHECK_CODE);
         
 //        interval = new Button[NUM_BUTTONS];
 //        interval[0] = (Button) findViewById(R.id.button1);
@@ -150,6 +153,18 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
         
         //setTimeInterval();
         //showPoints(this);
+            
+          //plot points
+			//plotLines(lines);
+            
+            Log.d("PLOT",CENTER.latitude+"");
+			
+            Log.d("PLOT",CENTER.longitude+"");
+			Polyline line = map.addPolyline(new PolylineOptions()
+	        .add(CENTER, new LatLng(CENTER.latitude + 0.0002, CENTER.longitude),new LatLng(CENTER.latitude - 0.00005, CENTER.longitude - 0.0008))
+	        .width(5)
+	        .color(Color.RED));
+                       
 	}
 
 	@Override
@@ -171,6 +186,9 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
 		.title(loc));
 		//.icon(BitmapDescriptorFactory.fromResource(R.drawable.arrow)));
 		marker.showInfoWindow();
+		plotLines(cor);
+		
+		
 	}
 	
 	public void getCurrentloc(String loc){
@@ -221,6 +239,11 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
 			//speakWords(path);
 			List<GeoPoint> route = new ArrayList<GeoPoint>();
 			//add your points somehow...
+			
+			//plot points
+			//plotLines(lines);
+		
+			
 			//GeoPoint q1 = route.get(lat)
 			//mapView.getOverlays().add(new RoutePathOverlay(route));
 
@@ -230,10 +253,28 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
 	}
 	
 	   //speak the user text
+	
     private void speakWords(String path) {
  
             //speak straight away
             myTTS.speak(path, TextToSpeech.QUEUE_FLUSH, null);
+    }
+    
+    private void plotLines(LatLng lines[])
+    {
+    	int a = 66;
+    	/*Polyline line = map.addPolyline(new PolylineOptions()
+        .add(CENTER, new LatLng(CENTER.latitude + 0.0002, CENTER.longitude),new LatLng(CENTER.latitude - 0.00005, CENTER.longitude - 0.0008))
+        .width(5)
+        .color(Color.RED));*/
+    }
+    
+    private void plotLines(LatLng cor)
+    {
+    	Polyline line = map.addPolyline(new PolylineOptions()
+        .add(cor, new LatLng(cor.latitude + 0.0002, cor.longitude),new LatLng(cor.latitude - 0.0005, cor.longitude - 0.0008))
+        .width(5)
+        .color(Color.RED));
     }
     
     //act on result of TTS data check
