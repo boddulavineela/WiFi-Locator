@@ -61,7 +61,7 @@ public class MainApplication extends Application {
     // contacts JSONArray
     JSONArray position = null;
     
-    private int timer_t = 4000;
+    private int timer_t = 40000;
     
     @Override
 	public void onCreate() {
@@ -229,6 +229,7 @@ public class MainApplication extends Application {
      		}
      	};
      		    
+
      	registerReceiver(wifiDataReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)); 
      	
      	timer = new Timer();

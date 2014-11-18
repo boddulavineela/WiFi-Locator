@@ -1,7 +1,6 @@
 package edu.ncsu.wifilocator;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -15,7 +14,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapView;
@@ -85,6 +83,7 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
     private static final String TAG_POINTS = "points";
     private static final String TAG_LAT = "lat";
     private static final String TAG_LNG = "lng";
+    private static final String TAG_LOC = "loc";
   
     // contacts JSONArray
     JSONArray points = null;
@@ -144,9 +143,9 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
 //        interval[2] = (Button) findViewById(R.id.button3);
 //        interval[3] = (Button) findViewById(R.id.button4);
 //        
-//        calibrate = new Button[2];
-//        calibrate[0] = (Button) findViewById(R.id.enable_exist);
-//        calibrate[1] = (Button) findViewById(R.id.disable_exist);
+            calibrate = new Button[1];
+            calibrate[0] = (Button) findViewById(R.id.button1);
+            //calibrate[1] = (Button) findViewById(R.id.disable_exist);
         
         //setTimeInterval();
         //showPoints(this);
@@ -166,6 +165,14 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
 	
 	public void updateLocation(LatLng cor, String loc){
 		map.clear();
+		Marker marker = map.addMarker(new MarkerOptions()
+		.position(cor)
+		.title(loc));
+		//.icon(BitmapDescriptorFactory.fromResource(R.drawable.arrow)));
+		marker.showInfoWindow();
+	}
+	
+	public void getRouteLocation(LatLng cor, String loc){
 		Marker marker = map.addMarker(new MarkerOptions()
 		.position(cor)
 		.title(loc));
@@ -217,13 +224,20 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
 			SoapPrimitive response = (SoapPrimitive) envelope.getResponse();
 			//Assign it to path static variable
 			path = response.toString();
-			Log.i("textResult", path);
+
+			   String[] result = path.split("move ");
+			   for(int i = 0; i<result.length; i++){
+				   showPoints(this,result);
+			   }
+			Log.i("textResult", path);	
+			
 			//speakWords(path);
-			List<GeoPoint> route = new ArrayList<GeoPoint>();
+			//List<GeoPoint> route = new ArrayList<GeoPoint>();
 			//add your points somehow...
 			//GeoPoint q1 = route.get(lat)
 			//mapView.getOverlays().add(new RoutePathOverlay(route));
 
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -319,94 +333,87 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
 //	    } 
 //	}
 	
-//	public void showPoints(final Context c){
-//		for (int i = 0; i < 2; i++) {
-//			final Button button = calibrate[i];
-//			button.setOnClickListener(new View.OnClickListener(){
-//				public void onClick(View v){
-//					switch (v.getId()) {
-//						case R.id.enable_exist:
-//							new PostJSONDataAsyncTask(c, null, url_points, false){
-//								@Override
-//					            protected void onPreExecute()
-//					            {
-//					                super.onPreExecute();
-//					            }
-//					            
-//					            // Override the onPostExecute to do whatever you want
-//					            @Override
-//					            protected void onPostExecute(String response)
-//					            {
-//					            	application = (MainApplication) MainActivity.this.getApplication();
-//					                super.onPostExecute(response);
-//					                Log.d("wifiloc", response);
-//					                if (response != null)
-//					                {
-//					                	JSONObject json = null;
-//					                	try{
-//					                		json = new JSONObject(response);
-//					                	} catch (JSONException e){
-//					                		e.printStackTrace();
-//					                        Log.d("wifiloc", "Error parsing JSON");
-//					                	}
-//					        			
-//					        			if(json == null){
-//					                    	Log.d("wifiloc", "Error parsing server response");
-//					                        return;
-//					                    }
-//					                    
-//					        			pointsList.clear();
-//					        			
-//					                    // If returned object length is 
-//					                    if(json.length() > 0){
-//					            			try {
-//					            	            // Getting Array of existing points
-//					            	            points = json.getJSONArray(TAG_POINTS);
-//					            	             
-//					            	            // looping through All points
-//					            	            for(int i = 0; i < points.length(); i++){
-//					            	                JSONObject c = points.getJSONObject(i);
-//					            	                 
-//					            	                // Storing each json item in variable
-//					            	                double lat = c.getDouble(TAG_LAT);
-//					            	                double lng = c.getDouble(TAG_LNG);
-//					            	                
-//					            	                // adding each coordinate to ArrayList
-//					            	                LatLng temp = new LatLng(lat, lng);
-//					            	                pointsList.add(temp);
-//					            	            }
-//					            	        } catch (JSONException e) {
-//					            	            e.printStackTrace();
-//					            	        }
-//					                    }
-//					                    else {
-//					                        //TODO Do something here if no teams have been made yet
-//					                    }
-//					                    
-//					                    Log.d("wifiloc", "Update Success");
-//					                    
-//					                    for(int i = 0; i < pointsList.size(); i++){
-//					            			map.addMarker(new MarkerOptions()
-//					            			.position(pointsList.get(i))
-//					            			.title(""+pointsList.get(i))
-//					            			.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-//					            		}
-//					                }
-//					                else
-//					                {
-//					                    // Toast.makeText(context, "Error connecting to server", Toast.LENGTH_LONG).show();
-//					                	Log.d("wifiloc", "Error Connecting to Server");
-//					                }
-//
-//					            }
-//							}.execute();
-//							break;
-//						//case R.id.disable_exist:
-//							map.clear();
-//							break;
-//					}
-//				}
-//			});
-//		}
-//	}
+	public void showPoints(final Context c, String[] result){
+		for (int i = 0; i < 1; i++) {
+			final Button button = calibrate[i];
+							new PostJSONDataAsyncTask(c, null, url_points, false){
+								@Override
+					            protected void onPreExecute()
+					            {
+					                super.onPreExecute();
+					            }
+					            
+					            // Override the onPostExecute to do whatever you want
+					            @Override
+					            protected void onPostExecute(String response)
+					            {
+					            	application = (MainApplication) MainActivity.this.getApplication();
+					                super.onPostExecute(response);
+					                Log.d("wifiloc", response);
+					                if (response != null)
+					                {
+					                	JSONObject json = null;
+					                	try{
+					                		json = new JSONObject(response);
+					                	} catch (JSONException e){
+					                		e.printStackTrace();
+					                        Log.d("wifiloc", "Error parsing JSON");
+					                	}
+					        			
+					        			if(json == null){
+					                    	Log.d("wifiloc", "Error parsing server response");
+					                        return;
+					                    }
+					                    
+					        			pointsList.clear();
+					        			
+					                    // If returned object length is 
+					                    if(json.length() > 0){
+					            			try {
+					            	            // Getting Array of existing points
+					            	            points = json.getJSONArray(TAG_POINTS);
+					            	             
+					            	            // looping through All points
+					            	            for(int i = 0; i < points.length(); i++){
+					            	                JSONObject c = points.getJSONObject(i);
+					            	                 
+					            	                // Storing each json item in variable
+					            	                double lat = c.getDouble(TAG_LAT);
+					            	                double lng = c.getDouble(TAG_LNG);
+					            	                String loc = c.getString(TAG_LOC);
+					            	                
+					            	                // adding each coordinate to ArrayList
+					            	                LatLng temp = new LatLng(lat, lng);
+					            	                pointsList.add(temp);
+					            	            }
+					            	        } catch (JSONException e) {
+					            	            e.printStackTrace();
+					            	        }
+					                    }
+					                    else {
+					                        //TODO Do something here if no teams have been made yet
+					                    }
+					                    
+					                    Log.d("wifiloc", "Update Success");
+					                    
+					                    for(int i = 0; i < pointsList.size(); i++){
+					            			map.addMarker(new MarkerOptions()
+					            			.position(pointsList.get(i))
+					            			.title(""+pointsList.get(i)));
+					            			//.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+					            		}
+					                }
+					                else
+					                {
+					                    // Toast.makeText(context, "Error connecting to server", Toast.LENGTH_LONG).show();
+					                	Log.d("wifiloc", "Error Connecting to Server");
+					                }
+
+					            }
+							}.execute();
+							break;
+						
+		}
+	
+	}
 }
