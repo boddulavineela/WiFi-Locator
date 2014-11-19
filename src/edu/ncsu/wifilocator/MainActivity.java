@@ -381,7 +381,9 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
 					            	                
 					            	                // adding each coordinate to ArrayList
 					            	                LatLng temp = new LatLng(lat, lng);
-					            	                pointsList.add(temp);
+					            	                //pointsList.add(temp);
+					            	                getRouteLocation(temp,loc);
+					            	                
 					            	            }
 					            	        } catch (JSONException e) {
 					            	            e.printStackTrace();
@@ -393,12 +395,12 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
 					                    
 					                    Log.d("wifiloc", "Update Success");
 					                    
-					                    for(int i = 0; i < pointsList.size(); i++){
-					            			map.addMarker(new MarkerOptions()
-					            			.position(pointsList.get(i))
-					            			.title(""+pointsList.get(i)));
-					            			//.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-					            		}
+//					                    for(int i = 0; i < pointsList.size(); i++){
+//					            			map.addMarker(new MarkerOptions()
+//					            			.position(pointsList.get(i))
+//					            			.title(""+pointsList.get(i)));
+//					            			//.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+//					            		}
 					                }
 					                else
 					                {
