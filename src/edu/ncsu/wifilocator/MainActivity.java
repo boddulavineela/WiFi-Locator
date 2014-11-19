@@ -115,22 +115,22 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
       	//Button to trigger web service invocation
     		b = (Button) findViewById(R.id.button1);
     		
-    		b.setOnClickListener(new OnClickListener() {
-    			public void onClick(View v) {
-    				//Check if location text control is not empty
-    				if (et.getText().length() != 0 && et.getText().toString() != "" && location.length() != 0 && location.toString() != "") {
-    					//Get the text control value
-    					destination = et.getText().toString();
-    					//Create instance for AsyncCallWS
-    					AsyncCallWS task = new AsyncCallWS();
-    					//Call execute 
-    					task.execute();
-    				//If text control is empty
-    				} else {
-    					//tv.setText("Please enter location");
-    				}
-    			}
-    		});
+//    		b.setOnClickListener(new OnClickListener() {
+//    			public void onClick(View v) {
+//    				//Check if location text control is not empty
+//    				if (et.getText().length() != 0 && et.getText().toString() != "" && location.length() != 0 && location.toString() != "") {
+//    					//Get the text control value
+//    					destination = et.getText().toString();
+//    					//Create instance for AsyncCallWS
+//    					AsyncCallWS task = new AsyncCallWS();
+//    					//Call execute 
+//    					task.execute();
+//    				//If text control is empty
+//    				} else {
+//    					//tv.setText("Please enter location");
+//    				}
+//    			}
+//    		});
     		
     		//check for TTS data
             Intent checkTTSIntent = new Intent();
@@ -148,7 +148,7 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
             //calibrate[1] = (Button) findViewById(R.id.disable_exist);
         
         //setTimeInterval();
-        //showPoints(this);
+        showPoints(this);
 	}
 
 	@Override
@@ -227,14 +227,13 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
 
 			   String[] result = path.split("move ");
 			   for(int i = 0; i<result.length; i++){
-				   showPoints(this,result);
+				   //showPoints(this,result);
 			   }
 			Log.i("textResult", path);	
 			
-			//speakWords(path);
 			//List<GeoPoint> route = new ArrayList<GeoPoint>();
 			//add your points somehow...
-			//GeoPoint q1 = route.get(lat)
+			//GeoPoint q1 = route.get(lat);
 			//mapView.getOverlays().add(new RoutePathOverlay(route));
 
 			
@@ -243,13 +242,6 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
 		}
 	}
 	
-	   //speak the user text
-    private void speakWords(String path) {
- 
-            //speak straight away
-            myTTS.speak(path, TextToSpeech.QUEUE_FLUSH, null);
-    }
-    
     //act on result of TTS data check
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
@@ -333,9 +325,14 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
 //	    } 
 //	}
 	
-	public void showPoints(final Context c, String[] result){
+	public void showPoints(final Context c){
 		for (int i = 0; i < 1; i++) {
 			final Button button = calibrate[i];
+			button.setOnClickListener(new View.OnClickListener() {
+	            public void onClick(View v) {
+	                // TODO Auto-generated method stub
+	            	switch (v.getId()) {
+	            	case R.id.button1:
 							new PostJSONDataAsyncTask(c, null, url_points, false){
 								@Override
 					            protected void onPreExecute()
@@ -365,7 +362,7 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
 					                        return;
 					                    }
 					                    
-					        			pointsList.clear();
+					        			//pointsList.clear();
 					        			
 					                    // If returned object length is 
 					                    if(json.length() > 0){
@@ -412,6 +409,9 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
 					            }
 							}.execute();
 							break;
+	             	}
+		            }
+		        });
 						
 		}
 	
