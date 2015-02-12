@@ -1,7 +1,6 @@
 package edu.ncsu.wifilocator;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -9,8 +8,12 @@ import org.json.JSONObject;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.IndoorBuilding;
+import com.google.android.gms.maps.model.IndoorLevel;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -22,16 +25,29 @@ import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapView;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.ListView;
 import android.widget.Toast;
 import android.os.AsyncTask;
+import android.app.ActionBar;
+import android.app.ActionBar.Tab;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
@@ -49,11 +65,12 @@ import android.widget.TextView;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnInitListener;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 
 import java.util.Locale;
 
-public class MainActivity extends FragmentActivity implements OnInitListener {
+public class MainActivity extends FragmentActivity implements OnInitListener, ListView.OnItemClickListener {
 	
 	private final String NAMESPACE = "http://tempuri.org/";
 	private final String URL = "http://win-res02.csc.ncsu.edu/MediationService.svc";
@@ -61,12 +78,15 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
 	private final String METHOD_NAME = "GetPlan";
 	private String TAG = "NCSU";
 	private static String location;
+	private static LatLng CurrentCoords;
 	private static String destination;
 	private static String path;
+	private static String NoRouteString = "GetPlanResponse{GetPlanResult=anyType{}; }";
+	private MapFragment map1;
 	Button b;
 	TextView tv;
 	EditText et;
-	
+	FrameLayout f;
 	//TTS object
     private TextToSpeech myTTS;
         //status check code
@@ -78,8 +98,17 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
 	private MainApplication application;
 	private int NUM_BUTTONS = 4;
 	private Button interval[], calibrate[];
+	
+	private DrawerLayout mDrawerLayout;
+	private ListView mDrawerList;
+	private String[] mPlaces;
+	ArrayAdapter<String> adapter;
+    private String[] drawerListViewItems;
+	IndoorBuilding building;
     
-	ArrayList<LatLng> pointsList;
+	ArrayList<String> pointsList;
+	HashMap<String, LatLng> places = new HashMap<String,LatLng>();
+	String[] result;
 	 
     // url to get all existing points list
     private static String url_points = "http://people.engr.ncsu.edu/vboddul/gen_json_for_android.php";
@@ -88,6 +117,7 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
     private static final String TAG_POINTS = "points";
     private static final String TAG_LAT = "lat";
     private static final String TAG_LNG = "lng";
+    private static final String TAG_LOC = "loc";
   
     // contacts JSONArray
     JSONArray points = null;
@@ -95,17 +125,100 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
+		MapsInitializer.initialize(this);
+		final ActionBar actionBar = getActionBar();
+		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 		
-		pointsList = new ArrayList<LatLng>();
+		
+		// Create a tab listener that is called when the user changes tabs.
+	    ActionBar.TabListener tabListener = new ActionBar.TabListener() {
+	        public void onTabSelected(ActionBar.Tab tab, FragmentTransaction ft) {
+	        	
+	        	android.support.v4.app.FragmentManager fragmentManager = getSupportFragmentManager();
+	            
+	        	if(tab.getText().equals("Suggest"))
+	        	{
+	            // show the given tab
+	        	Toast.makeText(MainActivity.this, tab.getText(), Toast.LENGTH_SHORT).show();
+	        	QuestionFragment fh = new QuestionFragment();
+	        	android.support.v4.app.FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+	            //FragmentTransaction ft = fm.beginTransaction();
+	            //fragmentTransaction.
+	            fragmentTransaction.add(R.id.parent, fh);
+	            fragmentTransaction.commit();
+	            f.setVisibility(android.view.View.INVISIBLE);
+	            //fragmentTransaction.add(fh, "question");
+	            et.setVisibility(android.view.View.INVISIBLE);
+	            b.setVisibility(android.view.View.INVISIBLE);
+	            
+	        	}
+	        	else
+	        	{
+	        		if(f!=null)
+	        		{
+	        			f.setVisibility(android.view.View.VISIBLE);
+	        			et.setVisibility(android.view.View.VISIBLE);
+	        			b.setVisibility(android.view.View.VISIBLE);
+	        			android.support.v4.app.FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+	        			android.support.v4.app.Fragment fRemove = fragmentManager.findFragmentById(R.id.parent);
+	        			//Log.d("FRAG", fRemove.getTag());
+	        			if(fRemove == null)
+	        			{
+	        				Log.d("FRAG", "null");
+	        			}
+	        			fragmentTransaction.detach(fRemove);
+	        			fragmentTransaction.commit();
+	        			
+	        		}
+	        	}
+	        }
+
+	        public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction ft) {
+	            // hide the given tab
+	        }
+
+	        public void onTabReselected(ActionBar.Tab tab, FragmentTransaction ft) {
+	            // probably ignore this event
+	        }
+
+	    };
+	    
+	    actionBar.addTab(
+                actionBar.newTab()
+                        .setText("Map")
+                        .setTabListener(tabListener));
+
+	    actionBar.addTab(
+                actionBar.newTab()
+                        .setText("Suggest")
+                        .setTabListener(tabListener));
+
+		setContentView(R.layout.activity_main);
+		/*map1 = MapFragment.newInstance();
+		FragmentTransaction fragTrans = getFragmentManager().beginTransaction();
+		fragTrans.add(R.id.parent, map1);
+		fragTrans.commit();*/
+		
+		pointsList = new ArrayList<String>();
 		
 		map = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
 				.getMap();
-		
+		//map = map1.getMap();
+		/*if(map1.getMap() != null){
+            Log.v(TAG, "Map ready for use!");
+            //mMap = getMap();
+        }
+		if (map == null)
+		{
+			Log.d("MAP", "null");
+			MapsInitializer.initialize(MainActivity.this);
+		}*/
 		//map.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
-		
 		// Move the camera instantly to the center with a zoom of 20.
 		map.moveCamera(CameraUpdateFactory.newLatLngZoom(CENTER, 20));
+		
+		//ronak TODO:
+		//location = "FRONTHALL";
 		
 		// Zoom in, animating the camera.
 		map.animateCamera(CameraUpdateFactory.zoomTo(20), 2000, null);
@@ -113,22 +226,82 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
 		application = (MainApplication) MainActivity.this.getApplication();
         application.mainActivity = this;
         
+      //Ronak
+		
+		mPlaces = new String[]{"FLoor 0","FLoor 1","Floor 2"};
+		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+		//mDrawerLayout.setScrimColor(00111010);
+		mDrawerLayout.setBackgroundColor(00110000);
+	    mDrawerList = (ListView) findViewById(R.id.left_drawer);
+	    mDrawerList.setBackgroundColor(11110000);
+
+	    drawerListViewItems = getResources().getStringArray(R.array.items);
+	     	
+	    //adapter = new ArrayAdapter<String>(getApplicationContext(),R.layout.drawer_listview_item,drawerListViewItems);
+	    // Set the adapter for the list view
+        mDrawerList.setAdapter(new ArrayAdapter<String>(MainActivity.this,R.layout.drawer_listview_item,drawerListViewItems));
+        // Set the list's click listener
+        mDrawerList.setOnItemClickListener(this);
+        
+
         //destination Edit Control
       		et = (EditText) findViewById(R.id.editText1);
       		
+      		f = (FrameLayout) findViewById(R.id.frameLayout);
       	//Button to trigger web service invocation
     		b = (Button) findViewById(R.id.button1);
     		
     		b.setOnClickListener(new OnClickListener() {
     			public void onClick(View v) {
+    				
+    				map.clear();
+    				Marker marker = map.addMarker(new MarkerOptions()
+    				.position(CurrentCoords)
+    				.title(location));
+    				//.icon(BitmapDescriptorFactory.fromResource(R.drawable.arrow)));
+    				marker.showInfoWindow();
+    				
+    				building = map.getFocusedBuilding();
+
+    				
+    				//IndoorLevel il = building.getLevels().get(0);
+    				//il.activate();
+    				if (building == null) {
+    				 // return null;
+    					Log.d("Indoor","NULL");
+    				}
+    				//Log.d("Indoor",building.getActiveLevelIndex()+"");
+    				//Lod.d(building.getLevels().get(building.getActiveLevelIndex()));
+    				//Toast.makeText(getApplicationContext(), "Active Level Index is "+building.getActiveLevelIndex(), Toast.LENGTH_LONG).show();
     				//Check if location text control is not empty
     				if (et.getText().length() != 0 && et.getText().toString() != "" && location.length() != 0 && location.toString() != "") {
     					//Get the text control value
     					destination = et.getText().toString();
-    					//Create instance for AsyncCallWS
-    					AsyncCallWS task = new AsyncCallWS();
-    					//Call execute 
-    					task.execute();
+    					
+    					if(destination.equalsIgnoreCase(location))
+    					{
+    						new AlertDialog.Builder(MainActivity.this)
+    					    .setTitle("Destination Reached")
+    					    .setMessage("You have reached your destination")
+    					    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+    					        public void onClick(DialogInterface dialog, int which) { 
+    					        	dialog.cancel();
+    					        	return;
+    					        }
+    					     })
+    					    .setIcon(android.R.drawable.checkbox_on_background)
+    					     .show();
+    					}
+    					else
+    					{
+	    					AsyncCallWS task = new AsyncCallWS();
+	    					task.execute();
+    					}
+    					
+    					//hide soft keyboard
+    					InputMethodManager imm = (InputMethodManager)getSystemService(
+    						      Context.INPUT_METHOD_SERVICE);
+    						imm.hideSoftInputFromWindow(et.getWindowToken(), 0);
     				//If text control is empty
     				} else {
     					//tv.setText("Please enter location");
@@ -141,30 +314,6 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
             checkTTSIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
            // startActivityForResult(checkTTSIntent, MY_DATA_CHECK_CODE);
         
-//        interval = new Button[NUM_BUTTONS];
-//        interval[0] = (Button) findViewById(R.id.button1);
-//        interval[1] = (Button) findViewById(R.id.button2);
-//        interval[2] = (Button) findViewById(R.id.button3);
-//        interval[3] = (Button) findViewById(R.id.button4);
-//        
-//        calibrate = new Button[2];
-//        calibrate[0] = (Button) findViewById(R.id.enable_exist);
-//        calibrate[1] = (Button) findViewById(R.id.disable_exist);
-        
-        //setTimeInterval();
-        //showPoints(this);
-            
-          //plot points
-			//plotLines(lines);
-            
-            Log.d("PLOT",CENTER.latitude+"");
-			
-            Log.d("PLOT",CENTER.longitude+"");
-			Polyline line = map.addPolyline(new PolylineOptions()
-	        .add(CENTER, new LatLng(CENTER.latitude + 0.0002, CENTER.longitude),new LatLng(CENTER.latitude - 0.00005, CENTER.longitude - 0.0008))
-	        .width(5)
-	        .color(Color.RED));
-                       
 	}
 
 	@Override
@@ -180,19 +329,39 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
 	}
 	
 	public void updateLocation(LatLng cor, String loc){
+		boolean isSame = false;
+		if(cor.equals(CurrentCoords))
+		{
+			isSame = true;
+		}
+		CurrentCoords = cor;
+		location = loc;
+		//Toast.makeText(getApplicationContext(), "Location Changed: loc "+location+" , "
+		//is		+ "isSame "+isSame, Toast.LENGTH_SHORT).show();
 		map.clear();
 		Marker marker = map.addMarker(new MarkerOptions()
 		.position(cor)
 		.title(loc));
 		//.icon(BitmapDescriptorFactory.fromResource(R.drawable.arrow)));
 		marker.showInfoWindow();
-		plotLines(cor);
+		//String a[] = {"1"};
+		//plotLines(a);
+		plotLines(MainActivity.this.result);
 		
 		
 	}
 	
-	public void getCurrentloc(String loc){
+	public void getRouteLocation(LatLng cor, String loc){
+		Marker marker = map.addMarker(new MarkerOptions()
+		.position(cor)
+		.title(loc));
+		//.icon(BitmapDescriptorFactory.fromResource(R.drawable.arrow)));
+		marker.showInfoWindow();
+	}
+	
+	public void getCurrentloc(LatLng cor, String loc){
 		location = loc;
+		CurrentCoords = cor;
 	}
 	
 	public void updateStatus(String s){
@@ -232,17 +401,39 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
 			//Invoke web service
 			androidHttpTransport.call(SOAP_ACTION, envelope);
 			//Get the response
-			SoapPrimitive response = (SoapPrimitive) envelope.getResponse();
+			SoapObject resp = (SoapObject) envelope.bodyIn;
 			//Assign it to path static variable
-			path = response.toString();
-			Log.i("textResult", path);
+			String path1 = resp.toString();
+			
+			if(path1.equalsIgnoreCase(NoRouteString))
+			{
+				result = null;
+				return;
+				//call dialog box and return
+				
+			}
+			else
+			{
+			int start = path1.indexOf('=');
+			int end = path1.indexOf(';');
+			String path = path1.substring(start+1, end);
+			System.out.println("path1 : "+path1);
+			System.out.println("path (extracted) "+path);
+			//SoapPrimitive response = (SoapPrimitive) envelope.getResponse();
+			//path = response.toString();
+
+			   result = path.split("\\r?\\n");
+			   System.out.println(result.length);
+			   System.out.println(result);
+			  
 			//speakWords(path);
-			List<GeoPoint> route = new ArrayList<GeoPoint>();
+			//List<GeoPoint> route = new ArrayList<GeoPoint>();
 			//add your points somehow...
 			
 			//plot points
-			//plotLines(lines);
-		
+			
+			//plotLines(result);
+			}
 			
 			//GeoPoint q1 = route.get(lat)
 			//mapView.getOverlays().add(new RoutePathOverlay(route));
@@ -260,21 +451,76 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
             myTTS.speak(path, TextToSpeech.QUEUE_FLUSH, null);
     }
     
-    private void plotLines(LatLng lines[])
+    private void plotLines(String[] results)
     {
-    	int a = 66;
-    	/*Polyline line = map.addPolyline(new PolylineOptions()
-        .add(CENTER, new LatLng(CENTER.latitude + 0.0002, CENTER.longitude),new LatLng(CENTER.latitude - 0.00005, CENTER.longitude - 0.0008))
-        .width(5)
-        .color(Color.RED));*/
-    }
-    
-    private void plotLines(LatLng cor)
-    {
-    	Polyline line = map.addPolyline(new PolylineOptions()
-        .add(cor, new LatLng(cor.latitude + 0.0002, cor.longitude),new LatLng(cor.latitude - 0.0005, cor.longitude - 0.0008))
+    	
+    	results = result;
+    	if(!places.isEmpty() && results!=null)
+    	{
+    		//results = result;
+    		String temp[];
+        	for(int i=0; i<result.length ; i++)
+        	{
+        		temp = result[i].split(" ");
+        		if(temp.length!=2)
+        		{
+        			System.out.println(result[i]);
+        			results[i] = temp[0];
+        		}
+        		else
+        		{
+        			results[i] = temp[1];
+        		}
+        	}
+    		
+    	//temp = results[0].split(" ");
+    	map.addPolyline(new PolylineOptions()
+        .add(places.get(location), places.get(results[0]))
         .width(5)
         .color(Color.RED));
+    	
+    	
+    	
+    	for(int i = 0; i< results.length - 1; i++)
+    	{
+    		//temp = results[i].split(" ");
+    		LatLng t = places.get(results[i]);
+    		map.addPolyline(new PolylineOptions()
+            .add(places.get(results[i]), places.get(results[i+1]))
+            .width(5)
+            .color(Color.RED));
+    		
+    		map.addMarker(new MarkerOptions()
+        	.position(places.get(results[i]))
+        	.title(results[i])
+        	.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
+    	}
+    	
+    	map.addMarker(new MarkerOptions()
+    	.position(places.get(results[results.length-1]))
+    	.title(results[results.length-1])
+    	.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+    	}
+    	
+    	// stub
+    	/*LatLng  p2 = new LatLng(35.76943504820285,-78.67655072361231);// backhall2 -- change
+    	LatLng  p3 = new LatLng(35.76933167486591,-78.67652926594019); // commons
+    	LatLng  p1 = new LatLng(35.768967690836426,-78.67671132087708);// room
+    	LatLng  p4 = new LatLng(35.76929603823704,-78.67639515548944);// stairs2
+    	LatLng  p5 = new LatLng(35.769496528071116,-78.67620304226875);// ent hall
+    	LatLng  p6 = new LatLng(35.76945381861016,-78.67634654045105);// ask us
+    	
+    	map.addPolyline(new PolylineOptions()
+        .add(p1, p2)
+        .width(5)
+        .color(Color.RED));
+    	
+
+    	/*map.addPolyline(new PolylineOptions()
+        .add(places.get(results[i]), places.get(results[i+1]))
+        .width(5)
+        .color(Color.RED));*/
+  
     }
     
     //act on result of TTS data check
@@ -317,20 +563,27 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
 		}
 
 		@Override
-		protected void onPostExecute(Void result) {
+		protected void onPostExecute(Void res) {
 			Log.i(TAG, "onPostExecute");
+			if(result == null)
+			{
+			new AlertDialog.Builder(MainActivity.this)
+		    .setTitle("No Route found")
+		    .setMessage("Sorry, We were not able to find a route for this location")
+		    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+		        public void onClick(DialogInterface dialog, int which) { 
+		            // continue with delete
+		        	dialog.cancel();
+		        	return;
+		        }
+		     })
+		    .setIcon(android.R.drawable.ic_menu_close_clear_cancel)
+		     .show();
+			
+			}
 			//tv.setText(path);
-		}
-
-		@Override
-		protected void onPreExecute() {
-			Log.i(TAG, "onPreExecute");
-			//tv.setText("Loading...");
-		}
-
-		@Override
-		protected void onProgressUpdate(Void... values) {
-			Log.i(TAG, "onProgressUpdate");
+			showPoints(getApplicationContext(),result);	
+			//plotLines(result);
 		}
 
 	}
@@ -360,94 +613,104 @@ public class MainActivity extends FragmentActivity implements OnInitListener {
 //	    } 
 //	}
 	
-//	public void showPoints(final Context c){
-//		for (int i = 0; i < 2; i++) {
-//			final Button button = calibrate[i];
-//			button.setOnClickListener(new View.OnClickListener(){
-//				public void onClick(View v){
-//					switch (v.getId()) {
-//						case R.id.enable_exist:
-//							new PostJSONDataAsyncTask(c, null, url_points, false){
-//								@Override
-//					            protected void onPreExecute()
-//					            {
-//					                super.onPreExecute();
-//					            }
-//					            
-//					            // Override the onPostExecute to do whatever you want
-//					            @Override
-//					            protected void onPostExecute(String response)
-//					            {
-//					            	application = (MainApplication) MainActivity.this.getApplication();
-//					                super.onPostExecute(response);
-//					                Log.d("wifiloc", response);
-//					                if (response != null)
-//					                {
-//					                	JSONObject json = null;
-//					                	try{
-//					                		json = new JSONObject(response);
-//					                	} catch (JSONException e){
-//					                		e.printStackTrace();
-//					                        Log.d("wifiloc", "Error parsing JSON");
-//					                	}
-//					        			
-//					        			if(json == null){
-//					                    	Log.d("wifiloc", "Error parsing server response");
-//					                        return;
-//					                    }
-//					                    
-//					        			pointsList.clear();
-//					        			
-//					                    // If returned object length is 
-//					                    if(json.length() > 0){
-//					            			try {
-//					            	            // Getting Array of existing points
-//					            	            points = json.getJSONArray(TAG_POINTS);
-//					            	             
-//					            	            // looping through All points
-//					            	            for(int i = 0; i < points.length(); i++){
-//					            	                JSONObject c = points.getJSONObject(i);
-//					            	                 
-//					            	                // Storing each json item in variable
-//					            	                double lat = c.getDouble(TAG_LAT);
-//					            	                double lng = c.getDouble(TAG_LNG);
-//					            	                
-//					            	                // adding each coordinate to ArrayList
-//					            	                LatLng temp = new LatLng(lat, lng);
-//					            	                pointsList.add(temp);
-//					            	            }
-//					            	        } catch (JSONException e) {
-//					            	            e.printStackTrace();
-//					            	        }
-//					                    }
-//					                    else {
-//					                        //TODO Do something here if no teams have been made yet
-//					                    }
-//					                    
-//					                    Log.d("wifiloc", "Update Success");
-//					                    
-//					                    for(int i = 0; i < pointsList.size(); i++){
-//					            			map.addMarker(new MarkerOptions()
-//					            			.position(pointsList.get(i))
-//					            			.title(""+pointsList.get(i))
-//					            			.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-//					            		}
-//					                }
-//					                else
-//					                {
-//					                    // Toast.makeText(context, "Error connecting to server", Toast.LENGTH_LONG).show();
-//					                	Log.d("wifiloc", "Error Connecting to Server");
-//					                }
-//
-//					            }
-//							}.execute();
-//							break;
-//						//case R.id.disable_exist:
-//							map.clear();
-//							break;
-//					}
-//				}
-//			});
-//		}
-//	}
+	public void showPoints(final Context c, String[] result){
+		//for (int i = 0; i < 1; i++) {
+			//final Button button = calibrate[i];
+							new PostJSONDataAsyncTask(c, null, url_points, false){
+								/*@Override
+					            protected void onPreExecute()
+					            {
+					                super.onPreExecute();
+					            }*/
+					            
+					            // Override the onPostExecute to do whatever you want
+					            @Override
+					            protected void onPostExecute(String response)
+					            {
+					            	application = (MainApplication) MainActivity.this.getApplication();
+					                super.onPostExecute(response);
+					                Log.d("wifiloc", response);
+					                if (response != null)
+					                {
+					                	JSONObject json = null;
+					                	try{
+					                		json = new JSONObject(response);
+					                	} catch (JSONException e){
+					                		e.printStackTrace();
+					                        Log.d("wifiloc", "Error parsing JSON");
+					                	}
+					        			
+					        			if(json == null){
+					                    	Log.d("wifiloc", "Error parsing server response");
+					                        return;
+					                    }
+					                    
+					        			//pointsList.clear();
+					        			
+					                    // If returned object length is 
+					                    if(json.length() > 0){
+					            			try {
+					            	            // Getting Array of existing points
+					            	            points = json.getJSONArray(TAG_POINTS);
+					            	             
+					            	            System.out.println(points);
+					            	            // looping through All points
+					            	            for(int i = 0; i < points.length(); i++){
+					            	                JSONObject c = points.getJSONObject(i);
+					            	                 
+					            	                // Storing each json item in variable
+					            	                double lat = c.getDouble(TAG_LAT);
+					            	                double lng = c.getDouble(TAG_LNG);
+					            	                String loc = c.getString(TAG_LOC);
+					            	                
+					            	                // adding each coordinate to ArrayList
+					            	                LatLng temp = new LatLng(lat, lng);
+					            	                places.put(loc, temp);
+					            	               // pointsList.add(loc);
+					            	            }
+					            	        } catch (JSONException e) {
+					            	            e.printStackTrace();
+					            	        }
+					                    }
+					                    else {
+					                        //TODO Do something here if no teams have been made yet
+					                    }
+					                    
+					                    Log.d("wifiloc", "Update Success");
+					                    
+					                    //Iterator it = places.keySet().iterator();				          
+					                    for(int i = 0; i < pointsList.size(); i++){
+					            			map.addMarker(new MarkerOptions()
+					            			.position(places.get(pointsList.get(i)))
+					            			.title(""+pointsList.get(i)));
+					            			//.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+					            		}
+					                    
+					                    //String a[] = {"a","b"};
+					                    plotLines(MainActivity.this.result);
+					                }
+					                else
+					                {
+					                    // Toast.makeText(context, "Error connecting to server", Toast.LENGTH_LONG).show();
+					                	Log.d("wifiloc", "Error Connecting to Server");
+					                }
+
+					            }
+							}.execute();
+							//break;
+						
+		//}
+							//plotLines(MainActivity.this.result);
+	}
+
+	@Override
+	public void onItemClick(AdapterView<?> parent, View view, int position,
+			long id) {
+		// TODO Auto-generated method stub
+		//Toast.makeText(this, "Clicked "+(5 - position), Toast.LENGTH_LONG).show();
+		IndoorLevel il = building.getLevels().get(position);
+		il.activate();
+		mDrawerLayout.closeDrawers();
+		
+	}
 }

@@ -61,7 +61,7 @@ public class MainApplication extends Application {
     // contacts JSONArray
     JSONArray position = null;
     
-    private int timer_t = 4000;
+    private int timer_t = 8000;  // changed from 40000 for testing
     
     @Override
 	public void onCreate() {
@@ -187,7 +187,7 @@ public class MainApplication extends Application {
         	                					Log.d("wifiloc", "good to draw");
         	                                    //mainActivity.updateLocation(coordinate);
         	                                    mainActivity.updateLocation(coordinate, loc);
-        	                                    mainActivity.getCurrentloc(loc);
+        	                                    mainActivity.getCurrentloc(coordinate,loc);
         	                                }
         	                	            // Getting Array of existing points
         	                	            //position = json.getJSONArray(TAG_POINTS);
@@ -229,6 +229,7 @@ public class MainApplication extends Application {
      		}
      	};
      		    
+
      	registerReceiver(wifiDataReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)); 
      	
      	timer = new Timer();

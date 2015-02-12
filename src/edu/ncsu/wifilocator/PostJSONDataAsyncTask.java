@@ -1,9 +1,13 @@
 package edu.ncsu.wifilocator;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.Header;
+import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
@@ -45,14 +49,6 @@ public class PostJSONDataAsyncTask extends AsyncTask<Object, Void, String>{
         this.showProgressDialog = showProgressDialog;
     }
     
-    @Override
-    protected void onPreExecute(){
-        this.dialog = new ProgressDialog(context);
-        this.dialog.setMessage("Updating");
-        if (showProgressDialog) {
-            this.dialog.show();
-        }
-    }
     
     protected String doInBackground(Object... arg){
 
@@ -61,6 +57,7 @@ public class PostJSONDataAsyncTask extends AsyncTask<Object, Void, String>{
             HttpClient httpclient = new DefaultHttpClient();
             ResponseHandler<String> responseHandler = new BasicResponseHandler();
             String responseBody = null;
+            HttpResponse response;
             
             // If this is null, it means we'll just execute HTTP directly without POST
             if(string == null){
@@ -73,7 +70,6 @@ public class PostJSONDataAsyncTask extends AsyncTask<Object, Void, String>{
             	HttpPost httppost = new HttpPost(postURL);
             	StringEntity tmp = null;
             	httppost.setHeader("User-Agent", "Agent_Smith");
-				// TODO Can we not set
 				httppost.setHeader("Accept", "text/html,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5");
 				httppost.setHeader("Content-Type", "application/x-www-form-urlencoded");
 				tmp = new StringEntity(string, "UTF-8");
@@ -99,23 +95,31 @@ public class PostJSONDataAsyncTask extends AsyncTask<Object, Void, String>{
     
                 // response = httpclient.execute(httppost);
                 responseBody = httpclient.execute(httppost, responseHandler);
-                Log.d("wifiloc", responseBody);
+               // response = httpclient.execute(httppost);
+                /*InputStream res = response.getEntity().getContent();
+                
+                String line = "";
+                StringBuilder total = new StringBuilder();
+                
+                // Wrap a BufferedReader around the InputStream
+                BufferedReader rd = new BufferedReader(new InputStreamReader(res));
+
+                // Read response until the end
+                while ((line = rd.readLine()) != null) { 
+                    total.append(line); 
+                }*/
+
+                Log.d("Test JSON", responseBody.toString());
             }
-            
+            Log.d("Test null JSON", responseBody.toString());
             return responseBody;
         }
         catch (Exception e){
-            Log.e("", e.toString());
+            Log.e("PostJSON", e.toString());
             //this.exception = e;
             return null;
         }
     }
     
-    // This should be overridden on each 
-    protected void onPostExecute(String response){
-        if(dialog.isShowing()){
-            dialog.dismiss();
-        }
-    }
 
 }
