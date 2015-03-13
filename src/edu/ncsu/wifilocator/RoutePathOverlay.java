@@ -1,11 +1,13 @@
 package edu.ncsu.wifilocator;
 import java.util.List;
+
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.RectF;
+
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
@@ -36,6 +38,7 @@ public class RoutePathOverlay extends Overlay {
 		canvas.drawOval(oval, ovalPaint);		
 	}
 
+	@Override
 	public boolean draw(Canvas canvas, MapView mapView, boolean shadow, long when) {
 		Projection projection = mapView.getProjection();
 		if (shadow == false && _points != null) {

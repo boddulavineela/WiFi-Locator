@@ -1,10 +1,45 @@
 package edu.ncsu.wifilocator;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Locale;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ksoap2.SoapEnvelope;
+import org.ksoap2.SoapFault;
+import org.ksoap2.serialization.PropertyInfo;
+import org.ksoap2.serialization.SoapObject;
+import org.ksoap2.serialization.SoapSerializationEnvelope;
+import org.ksoap2.transport.HttpTransportSE;
+
+import android.app.ActionBar;
+import android.app.AlertDialog;
+import android.app.FragmentTransaction;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.graphics.Color;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.TextToSpeech.OnInitListener;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.widget.DrawerLayout;
+import android.util.Log;
+import android.view.Menu;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -17,58 +52,7 @@ import com.google.android.gms.maps.model.IndoorLevel;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.android.maps.GeoPoint;
-import com.google.android.maps.MapActivity;
-import com.google.android.maps.MapView;
-
-import android.content.Context;
-import android.content.DialogInterface;
-import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.widget.DrawerLayout;
-import android.util.Log;
-import android.view.Menu;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.FrameLayout;
-import android.widget.ListView;
-import android.widget.Toast;
-import android.os.AsyncTask;
-import android.app.ActionBar;
-import android.app.ActionBar.Tab;
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.app.Activity;
-
-import org.ksoap2.SoapEnvelope;
-import org.ksoap2.serialization.PropertyInfo;
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
-import org.ksoap2.serialization.SoapSerializationEnvelope;
-import org.ksoap2.transport.HttpTransportSE;
-
-import edu.ncsu.wifilocator.R;
-import android.widget.EditText;
-import android.widget.TextView;
-import android.speech.tts.TextToSpeech;
-import android.speech.tts.TextToSpeech.OnInitListener;
-import android.content.Intent;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
-
-import java.util.Locale;
 
 public class MainActivity extends FragmentActivity implements OnInitListener, ListView.OnItemClickListener {
 	
@@ -87,6 +71,7 @@ public class MainActivity extends FragmentActivity implements OnInitListener, Li
 	TextView tv;
 	EditText et;
 	FrameLayout f;
+	Button roomSearch;
 	//TTS object
     private TextToSpeech myTTS;
         //status check code
@@ -118,6 +103,7 @@ public class MainActivity extends FragmentActivity implements OnInitListener, Li
     private static final String TAG_LAT = "lat";
     private static final String TAG_LNG = "lng";
     private static final String TAG_LOC = "loc";
+	protected static final String GET_ROOMS_METHOD_NAME = "GetMatchingRooms";
   
     // contacts JSONArray
     JSONArray points = null;
@@ -132,7 +118,8 @@ public class MainActivity extends FragmentActivity implements OnInitListener, Li
 		
 		// Create a tab listener that is called when the user changes tabs.
 	    ActionBar.TabListener tabListener = new ActionBar.TabListener() {
-	        public void onTabSelected(ActionBar.Tab tab, FragmentTransaction ft) {
+	        @Override
+			public void onTabSelected(ActionBar.Tab tab, FragmentTransaction ft) {
 	        	
 	        	android.support.v4.app.FragmentManager fragmentManager = getSupportFragmentManager();
 	            
@@ -141,6 +128,7 @@ public class MainActivity extends FragmentActivity implements OnInitListener, Li
 	            // show the given tab
 	        	Toast.makeText(MainActivity.this, tab.getText(), Toast.LENGTH_SHORT).show();
 	        	QuestionFragment fh = new QuestionFragment();
+	        	Log.d("TAB",fh.getId()+"");
 	        	android.support.v4.app.FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 	            //FragmentTransaction ft = fm.beginTransaction();
 	            //fragmentTransaction.
@@ -151,7 +139,110 @@ public class MainActivity extends FragmentActivity implements OnInitListener, Li
 	            et.setVisibility(android.view.View.INVISIBLE);
 	            b.setVisibility(android.view.View.INVISIBLE);
 	            
+	            //TextView tv = (TextView) MainActivity.this.findViewById(R.id.textView4);
+	            //tv.setText("Foo bar");
+	            
+	            android.support.v4.app.Fragment f = fragmentManager.findFragmentById(fh.getId());
+	            //f.getView();
+//	            Log.d("TAB",fh.getTemp());
+	            /*View suggestView = f.getView();
+	            TextView tv_s = (TextView)suggestView.findViewById(R.id.textView4);
+	            Log.d("Tab",tv_s.getText().toString());*/
+	            /*Log.d("Tab",tv.getCurrentTextColor()+"");
+	            roomSearch = (Button) findViewById(R.id.searchButton);*/
+	            
+	            /*roomSearch.setOnClickListener(new View.OnClickListener() {
+					
+					@Override
+					public void onClick(View v) {
+						// TODO Auto-generated method stub
+						getRooms();
+					}
+					private void getRooms() {
+						// TODO Auto-generated method stub
+						
+						SoapObject request = new SoapObject(NAMESPACE, GET_ROOMS_METHOD_NAME);
+						//Property which holds input parameters
+						PropertyInfo locationPI = new PropertyInfo();
+						PropertyInfo destinationPI = new PropertyInfo();
+						
+						PropertyInfo light = new PropertyInfo();
+						light.setType(String.class);
+						light.setName("light");
+						light.setValue("");
+						
+						PropertyInfo sound = new PropertyInfo();
+						sound.setType(String.class);
+						sound.setName("sound");
+						sound.setValue("");
+						
+						PropertyInfo tempHi = new PropertyInfo();
+						tempHi.setType(int.class);
+						tempHi.setName("tempHi");
+						tempHi.setValue(0);
+						
+						PropertyInfo tempLo = new PropertyInfo();
+						tempLo.setType(int.class);
+						tempLo.setName("tempLo");
+						tempLo.setValue(0);
+						
+						PropertyInfo type = new PropertyInfo();
+						type.setType(String.class);
+						type.setName("type");
+						
+						//Set Name
+						locationPI.setName("source");
+						destinationPI.setName("destination");
+						//Set Value
+						locationPI.setValue(location);
+						destinationPI.setValue(destination);
+						//Set dataType
+						locationPI.setType(double.class);
+						destinationPI.setType(double.class);
+						//Add the property to request object
+						request.addProperty(light);
+						request.addProperty(sound);
+						
+						request.addProperty(light);
+						request.addProperty(sound);
+						request.addProperty(tempHi);
+						request.addProperty(tempLo);
+						request.addProperty(type);
+						
+						
+						//Create envelope
+						SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(
+								SoapEnvelope.VER11);
+						envelope.dotNet = true;
+						//Set output SOAP object
+						envelope.setOutputSoapObject(request);
+						//Create HTTP call object
+						HttpTransportSE androidHttpTransport = new HttpTransportSE(URL);
+						androidHttpTransport.debug = true;
+						//androidHttpTransport.setXmlVersionTag("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+
+						try {
+							//Invoke web service
+							androidHttpTransport.call(SOAP_ACTION, envelope);
+							//Get the response
+							SoapObject resp = (SoapObject) envelope.bodyIn;
+							//Assign it to path static variable
+							String path1 = resp.toString();
+							Log.d("ROOMS",path1);
+							System.out.println(path1);
+							
+							}
+							
+
+						catch (Exception e) {
+							e.printStackTrace();
+						}
+						
+					}
+				});*/
 	        	}
+	            
+	            
 	        	else
 	        	{
 	        		if(f!=null)
@@ -173,11 +264,13 @@ public class MainActivity extends FragmentActivity implements OnInitListener, Li
 	        	}
 	        }
 
-	        public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction ft) {
+	        @Override
+			public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction ft) {
 	            // hide the given tab
 	        }
 
-	        public void onTabReselected(ActionBar.Tab tab, FragmentTransaction ft) {
+	        @Override
+			public void onTabReselected(ActionBar.Tab tab, FragmentTransaction ft) {
 	            // probably ignore this event
 	        }
 
@@ -252,7 +345,8 @@ public class MainActivity extends FragmentActivity implements OnInitListener, Li
     		b = (Button) findViewById(R.id.button1);
     		
     		b.setOnClickListener(new OnClickListener() {
-    			public void onClick(View v) {
+    			@Override
+				public void onClick(View v) {
     				
     				map.clear();
     				Marker marker = map.addMarker(new MarkerOptions()
@@ -284,7 +378,8 @@ public class MainActivity extends FragmentActivity implements OnInitListener, Li
     					    .setTitle("Destination Reached")
     					    .setMessage("You have reached your destination")
     					    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-    					        public void onClick(DialogInterface dialog, int which) { 
+    					        @Override
+								public void onClick(DialogInterface dialog, int which) { 
     					        	dialog.cancel();
     					        	return;
     					        }
@@ -308,6 +403,98 @@ public class MainActivity extends FragmentActivity implements OnInitListener, Li
     				}
     			}
     		});
+    		
+    		//if(roomSearch != null)
+    		/*roomSearch.setOnClickListener(new View.OnClickListener() {
+				
+				@Override
+				public void onClick(View v) {
+					// TODO Auto-generated method stub
+					getRooms();
+				}*/
+
+				/*private void getRooms() {
+					// TODO Auto-generated method stub
+					
+					SoapObject request = new SoapObject(NAMESPACE, GET_ROOMS_METHOD_NAME);
+					//Property which holds input parameters
+					PropertyInfo locationPI = new PropertyInfo();
+					PropertyInfo destinationPI = new PropertyInfo();
+					
+					PropertyInfo light = new PropertyInfo();
+					light.setType(String.class);
+					light.setName("light");
+					light.setValue("");
+					
+					PropertyInfo sound = new PropertyInfo();
+					sound.setType(String.class);
+					sound.setName("sound");
+					sound.setValue("");
+					
+					PropertyInfo tempHi = new PropertyInfo();
+					tempHi.setType(int.class);
+					tempHi.setName("tempHi");
+					tempHi.setValue(0);
+					
+					PropertyInfo tempLo = new PropertyInfo();
+					tempLo.setType(int.class);
+					tempLo.setName("tempLo");
+					tempLo.setValue(0);
+					
+					PropertyInfo type = new PropertyInfo();
+					type.setType(String.class);
+					type.setName("type");
+					
+					//Set Name
+					locationPI.setName("source");
+					destinationPI.setName("destination");
+					//Set Value
+					locationPI.setValue(location);
+					destinationPI.setValue(destination);
+					//Set dataType
+					locationPI.setType(double.class);
+					destinationPI.setType(double.class);
+					//Add the property to request object
+					request.addProperty(light);
+					request.addProperty(sound);
+					
+					request.addProperty(light);
+					request.addProperty(sound);
+					request.addProperty(tempHi);
+					request.addProperty(tempLo);
+					request.addProperty(type);
+					
+					
+					//Create envelope
+					SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(
+							SoapEnvelope.VER11);
+					envelope.dotNet = true;
+					//Set output SOAP object
+					envelope.setOutputSoapObject(request);
+					//Create HTTP call object
+					HttpTransportSE androidHttpTransport = new HttpTransportSE(URL);
+					androidHttpTransport.debug = true;
+					//androidHttpTransport.setXmlVersionTag("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+
+					try {
+						//Invoke web service
+						androidHttpTransport.call(SOAP_ACTION, envelope);
+						//Get the response
+						SoapObject resp = (SoapObject) envelope.bodyIn;
+						//Assign it to path static variable
+						String path1 = resp.toString();
+						Log.d("ROOMS",path1);
+						System.out.println(path1);
+						
+						}
+						
+
+					catch (Exception e) {
+						e.printStackTrace();
+					}
+					
+				}
+			});*/
     		
     		//check for TTS data
             Intent checkTTSIntent = new Intent();
@@ -393,7 +580,7 @@ public class MainActivity extends FragmentActivity implements OnInitListener, Li
 		//Set output SOAP object
 		envelope.setOutputSoapObject(request);
 		//Create HTTP call object
-		HttpTransportSE androidHttpTransport = new HttpTransportSE(URL);
+		HttpTransportSE androidHttpTransport = new HttpTransportSE(URL,80000);
 		androidHttpTransport.debug = true;
 		//androidHttpTransport.setXmlVersionTag("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
 
@@ -401,6 +588,11 @@ public class MainActivity extends FragmentActivity implements OnInitListener, Li
 			//Invoke web service
 			androidHttpTransport.call(SOAP_ACTION, envelope);
 			//Get the response
+			if (envelope.bodyIn instanceof SoapFault)
+			{
+			    final SoapFault sf = (SoapFault) envelope.bodyIn;
+			    System.out.println(sf.faultstring);
+			}
 			SoapObject resp = (SoapObject) envelope.bodyIn;
 			//Assign it to path static variable
 			String path1 = resp.toString();
@@ -524,6 +716,7 @@ public class MainActivity extends FragmentActivity implements OnInitListener, Li
     }
     
     //act on result of TTS data check
+	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
 		if (requestCode == MY_DATA_CHECK_CODE) {
@@ -541,7 +734,8 @@ public class MainActivity extends FragmentActivity implements OnInitListener, Li
 	}
 	
     //setup TTS
-    public void onInit(int initStatus) {
+    @Override
+	public void onInit(int initStatus) {
      
             //check for successful instantiation
         if (initStatus == TextToSpeech.SUCCESS) {
@@ -571,7 +765,8 @@ public class MainActivity extends FragmentActivity implements OnInitListener, Li
 		    .setTitle("No Route found")
 		    .setMessage("Sorry, We were not able to find a route for this location")
 		    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-		        public void onClick(DialogInterface dialog, int which) { 
+		        @Override
+				public void onClick(DialogInterface dialog, int which) { 
 		            // continue with delete
 		        	dialog.cancel();
 		        	return;
@@ -588,30 +783,6 @@ public class MainActivity extends FragmentActivity implements OnInitListener, Li
 
 	}
 	
-//	public void setTimeInterval(){
-//		for (int i = 0; i < NUM_BUTTONS; i++) {
-//			final Button theButton = interval[i];
-//			theButton.setOnClickListener(new View.OnClickListener() {
-//	            public void onClick(View v) {
-//	                // TODO Auto-generated method stub
-//	            	switch (v.getId()) {
-//	                	case R.id.button1:
-//	                		application.updateTimerInterval(5000);
-//	                		break;
-//	                	case R.id.button2:
-//	                		application.updateTimerInterval(10000);
-//	                		break;
-//	                	case R.id.button3:
-//	                		application.updateTimerInterval(15000);
-//	                		break;
-//	                	case R.id.button4:
-//	                		application.updateTimerInterval(20000);
-//	                		break;
-//	            	}
-//	            }
-//	        }); 
-//	    } 
-//	}
 	
 	public void showPoints(final Context c, String[] result){
 		//for (int i = 0; i < 1; i++) {

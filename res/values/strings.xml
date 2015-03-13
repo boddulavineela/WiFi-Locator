@@ -10,6 +10,7 @@
     <string name="button4">20s</string>
     <string name="enable_point">Show Calibrated Data</string>
     <string name="disable_point">Hide Calibrated Data</string>
+
     <string-array name="items">
         <item>Floor 1</item>
         <item>Floor 2</item>
@@ -17,5 +18,7 @@
         <item>Floor 4</item>
         <item>Floor 5</item>
     </string-array>
+
+    <string name="title_activity_display_rooms">DisplayRoomsActivity</string>
 
 </resources>
