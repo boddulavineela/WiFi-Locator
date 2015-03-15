@@ -1,3 +1,11 @@
+/**
+ * MainApplication
+ * 
+ * Used to set up the WiFi broadcast receiver which will listen
+ * to the WiFi signals and send the information about estimated position
+ * 
+ * 
+ */
 package edu.ncsu.wifilocator;
 
 import java.util.List;
@@ -25,7 +33,7 @@ public class MainApplication extends Application {
 	
 	WifiManager wifi;
 	BroadcastReceiver wifiDataReceiver = null;
-	DefaultHttpClient httpClient;
+	DefaultHttpClient httpClient;		//to send th data
 	Timer timer;
 	
 	public MainActivity mainActivity = null;
@@ -48,7 +56,6 @@ public class MainApplication extends Application {
     @Override
 	public void onCreate() {
 		super.onCreate();
-		//Log.d(APP_NAME, "APPLICATION onCreate");
         wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
         if (wifi.isWifiEnabled() == false)
         {
@@ -56,25 +63,9 @@ public class MainApplication extends Application {
             wifi.setWifiEnabled(true);
         } 
         
-        // http://stackoverflow.com/questions/2253061/secure-http-post-in-android
-     	/*HttpParams params = new BasicHttpParams();
-
-     	HttpConnectionParams.setConnectionTimeout(params, 10000);
-     	HttpConnectionParams.setSoTimeout(params, 10000);
-
-     	HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
-     	HttpProtocolParams.setContentCharset(params, HTTP.UTF_8);
-     	HttpProtocolParams.setUseExpectContinue(params, true);
-
-     	SchemeRegistry schReg = new SchemeRegistry();
-     	schReg.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
-     	//schReg.register(new Scheme("https", SSLSocketFactory.getSocketFactory(), 443));
-     	ClientConnectionManager conMgr = new ThreadSafeClientConnManager(params, schReg);
-
-     	httpClient = new DefaultHttpClient(conMgr, params);*/
-        
         // Register to get the Signal Strengths
      	wifiDataReceiver = new BroadcastReceiver(){
+     		// onReceive for the WiFi broadcast signal
      		@Override
      		public void onReceive(Context c, Intent intent){			            	
      			if(shouldScan){
@@ -82,42 +73,18 @@ public class MainApplication extends Application {
      			    List<ScanResult> results = wifi.getScanResults();
      			    
      			    String postParameters = "success=1";
-     			    //JSONObject jsonObjSend = new JSONObject();
      			    
      			    for(int i = 0; i < results.size(); i++){
      			    	ScanResult result = results.get(i);
      			    	String parameters = "&";
-     			    	//N.C. State access points only
-     			    	//if(!result.SSID.equals("ncsu") && !result.SSID.equals("ncsu-guest")){
-							// Skip this one
-     			    		//continue;
-						//}
-
-     			    	
-     			    	/*try {
-     			    		JSONObject entry = new JSONObject();
-     			    		entry.put("mac", result.BSSID);
-     			    		entry.put("strength", Integer.toString(result.level));
-     			            jsonObjSend.put("AP", entry);
-     			            //Log.d("wifiloc", jArray.toString());
-
-     			        } catch (Exception e) {
-     			            Log.e("wifiloc", "" + e.getMessage());
-     			        }*/
      			    	
 						// Add this signal strength reading as a parameter where the name is the BSSID
 						String measurementString = result.BSSID + "=" + Integer.toString(result.level);
-						//if(first){
-							//postParameters = measurementString;
-							//first = false;
-						//}
-						//else{
+
 							parameters = parameters + measurementString;
 							postParameters = postParameters + parameters;
-						//}
      			    }
-     			  // Toast.makeText(getBaseContext(), postParameters, Toast.LENGTH_LONG).show();
-     			    //Log.d("wifiloc", jsonObjSend.toString());
+
      			    //send data to the server
      			   new PostJSONDataAsyncTask(c, postParameters, url_position, false){
     	                // Override the onPostExecute to do whatever you want
@@ -142,7 +109,7 @@ public class MainApplication extends Application {
     	                            return;
     	                        }
     	            			
-    	                        // If returned object length is 
+    	                        // If returned object length is >0
     	                        if(json.length() > 0){
     	                			try {
     	                				if (json.has("error")){
@@ -162,48 +129,29 @@ public class MainApplication extends Application {
         	                				double lng = json.getDouble(TAG_LNG);
         	                				String loc = json.getString(TAG_LOC);
         	                				LatLng coordinate = new LatLng(lat, lng);
-        	                				//Log.d("wifiloc", lat + " $$ " + lng);
         	                				
         	                				if(mainActivity != null)
         	                                {
         	                					Log.d("wifiloc", "good to draw");
-        	                                    //mainActivity.updateLocation(coordinate);
         	                                    mainActivity.updateLocation(coordinate, loc);
         	                                    mainActivity.getCurrentloc(coordinate,loc);
         	                                }
-        	                	            // Getting Array of existing points
-        	                	            //position = json.getJSONArray(TAG_POINTS);
-        	                	             
-        	                	            // looping through All points
-        	                	            /*for(int i = 0; i < points.length(); i++){
-        	                	                JSONObject c = points.getJSONObject(i);
-        	                	                 
-        	                	                // Storing each json item in variable
-        	                	                String val1 = c.getString("val1");
-        	                	                String val2 = c.getString("val2");
-        	                	                
-        	                	                // adding each coordinate to ArrayList
-        	                	                Log.d("test", val1 + " $$ " + val2);
-        	                	            }*/
         	                        	}
     	                	        } catch (JSONException e) {
     	                	            e.printStackTrace();
     	                	        }
     	                        }
-    	                        else {
-    	                            //TODO Do something here if no teams have been made yet
-    	                        }
     	                    }
     	                    else
     	                    {
-    	                        // Toast.makeText(context, "Error connecting to server", Toast.LENGTH_LONG).show();
+    	                    	//log the error
     	                    	Log.d("wifiloc", "Error Connecting to Server");
     	                    }
     	                    
-    	                    //Log.d("wifiloc", "Update Success");
     	                }
     	            }.execute();
 					
+    	            //log successfully sent location
                     Log.d("wifiloc", "Successfully sent location info! :D");
      			    
                     shouldScan = false;
@@ -211,18 +159,16 @@ public class MainApplication extends Application {
      		}
      	};
      		    
-
+     	// register to receive the WiFi updates
      	registerReceiver(wifiDataReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)); 
      	
-     	timer = new Timer();
+     	timer = new Timer();	//timer to periodically update the location
         timer.scheduleAtFixedRate(new UpdateLocationTask(), 50, timer_t);
         
 	}
 
 	@Override
 	public void onTerminate() {
-		// This doesn't get called on real Android Devices... See docs
-		//Log.d(APP_NAME, "APPLICATION onTerminate");
 		unregisterReceiver(wifiDataReceiver);
     	wifiDataReceiver = null;
     	timer.cancel();
@@ -236,6 +182,11 @@ public class MainApplication extends Application {
         timer.scheduleAtFixedRate(new UpdateLocationTask(), 50, timer_t);
 	}
 	
+	/**
+	 * UpdateLocationTask
+	 * 
+	 * class which periodically scans the WiFi 
+	 */
 	class UpdateLocationTask extends TimerTask {
         @Override
 		public void run() {

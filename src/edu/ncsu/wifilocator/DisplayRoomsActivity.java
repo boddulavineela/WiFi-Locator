@@ -1,3 +1,10 @@
+/**
+ * DisplayRoomsActivity
+ * 
+ * Activity that displays the list of rooms given by the Suggest tab. on clicking any item, it
+ * displays the route to that location on the map
+ * 
+ */
 package edu.ncsu.wifilocator;
 
 import android.os.Bundle;
@@ -5,8 +12,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
-
-
+//TODO: implement the rest of this class
 public class DisplayRoomsActivity extends ActionBarActivity {
 
 	TextView tv;

@@ -1,3 +1,14 @@
+/**
+ * QuestionFragment
+ * 
+ * This is the fragment that deals with the 'Suggest' tab. this class calls the web service 
+ * to search for a room based on parameters like noise, light , sound and room type. It shows a 
+ * list of the rooms returned by the web service. when the user clicks on any item of the list
+ * it searches for the route to that room
+ * 
+ */
+
+//TODO: yet to implement the display of the rooms returned and search it on the map
 package edu.ncsu.wifilocator;
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.SoapFault;
@@ -36,7 +47,6 @@ public class QuestionFragment extends Fragment{
 			
 			@Override
 			public void onClick(View v) {
-				// TODO Auto-generated method stub
 				Log.d("FRAGMENT", "Hey I was clicked");
 				new roomsAsync().execute();
 			}
@@ -51,7 +61,12 @@ public class QuestionFragment extends Fragment{
 	 
 	 
 }
-
+/**
+ * roomsAsync
+ * 
+ * Async class to get the list of rooms matching the criteria gievn by the user
+ * 
+ */
 class roomsAsync extends AsyncTask<String,Void,String>
 {
 	private final String NAMESPACE = "http://tempuri.org/";
@@ -61,14 +76,12 @@ class roomsAsync extends AsyncTask<String,Void,String>
 	
 	@Override
 	protected String doInBackground(String... params) {
-		// TODO Auto-generated method stub
 		String res = getRooms();
 		return res;
 	}
 	
 	@Override
 	protected void onPostExecute(String result) {
-		// TODO Auto-generated method stub
 		super.onPostExecute(result);
 		Log.d("OnPostExe",result);
 		//Intent i = new Intent(this,DisplayRoomsActivity.class);
@@ -76,8 +89,15 @@ class roomsAsync extends AsyncTask<String,Void,String>
 		Toast.*/
 	}
 	
+	/**
+	 * 
+	 * method getRooms
+	 * 
+	 * calls the web service to get the list of rooms matching the criteria
+	 * 
+	 * @return String of rooms separated by :
+	 */
 	public String getRooms() {
-		// TODO Auto-generated method stub
 		
 		SoapObject request = new SoapObject(NAMESPACE, GET_ROOMS_METHOD_NAME);
 		//Property which holds input parameters
@@ -101,24 +121,17 @@ class roomsAsync extends AsyncTask<String,Void,String>
 		tempLo.setType(int.class);
 		tempLo.setName("tempLo");
 		tempLo.setValue(60);
-		//tempLo.
 		
 		PropertyInfo type = new PropertyInfo();
 		type.setType(String.class);
 		type.setName("type");
 		type.setValue("group_study_room");
 		
-		
-		//Add the property to request object
-		/*request.addProperty(light);
-		request.addProperty(sound);
-		*/
 		request.addProperty(light);
 		request.addProperty(sound);
 		request.addProperty(tempHi);
 		request.addProperty(tempLo);
 		request.addProperty(type);
-		
 		
 		//Create envelope
 		SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(
@@ -144,7 +157,7 @@ class roomsAsync extends AsyncTask<String,Void,String>
 			//Assign it to path static variable
 			String path1 = resp.toString();
 			Log.d("ROOMS",path1);
-			System.out.println(path1);
+			//System.out.println(path1);
 			
 			return path1;
 			
