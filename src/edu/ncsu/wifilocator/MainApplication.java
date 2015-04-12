@@ -51,7 +51,7 @@ public class MainApplication extends Application {
     // contacts JSONArray
     JSONArray position = null;
     
-    private int timer_t = 8000;  // changed from 40000 for testing
+    private int timer_t = 5000;  // changed from 40000 for testing
     
     @Override
 	public void onCreate() {
@@ -133,6 +133,7 @@ public class MainApplication extends Application {
         	                				if(mainActivity != null)
         	                                {
         	                					Log.d("wifiloc", "good to draw");
+        	                					Toast.makeText(getApplicationContext(), loc, Toast.LENGTH_SHORT).show();
         	                                    mainActivity.updateLocation(coordinate, loc);
         	                                    mainActivity.getCurrentloc(coordinate,loc);
         	                                }

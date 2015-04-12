@@ -17,29 +17,42 @@ import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
 import org.ksoap2.transport.HttpTransportSE;
 
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.sax.StartElementListener;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
 public class QuestionFragment extends Fragment{
 
 
 	View view;
-	TextView tv;
+	EditText tmpLo;
+	EditText tmpHi;
+	RadioGroup lightGroup;
+	RadioGroup soundGroup;
+	RadioGroup roomGroup;
 	 @Override
 	    public View onCreateView(LayoutInflater inflater, ViewGroup container,
 	        Bundle savedInstanceState) {
 	        // Inflate the layout for this fragment
 		 view = inflater.inflate(R.layout.questions_fragment, container, false);
-		 tv = (TextView) view.findViewById(R.id.textView4);
-		 tv.setText("text");
+		 
+		 tmpLo = (EditText) view.findViewById(R.id.tempLo);
+		 tmpHi = (EditText) view.findViewById(R.id.tempHi);
+		 lightGroup = (RadioGroup) view.findViewById(R.id.lightGroup);
+		 soundGroup = (RadioGroup) view.findViewById(R.id.soundGroup);
+		 roomGroup = (RadioGroup) view.findViewById(R.id.roomGroup);
 		 
 		 Button sButton = (Button)view.findViewById(R.id.searchButton);
 		 
@@ -48,16 +61,45 @@ public class QuestionFragment extends Fragment{
 			@Override
 			public void onClick(View v) {
 				Log.d("FRAGMENT", "Hey I was clicked");
-				new roomsAsync().execute();
+				
+				String tempLow = tmpLo.getText().toString();
+				if(tempLow.trim().length() == 0)
+					tempLow = "0";
+				
+				String tempHigh = tmpHi.getText().toString();
+				if(tempHigh.trim().length() == 0)
+					tempHigh = "100";
+				
+				String lightLow = "0";
+				String lightHigh = "100";
+				if(lightGroup.getCheckedRadioButtonId() == R.id.lightDim)
+				{
+					lightHigh = "50";
+				}
+				if(lightGroup.getCheckedRadioButtonId() == R.id.lightBright)
+				{
+					lightLow = "50";
+				}
+				
+				String soundLow = "0";
+				String soundHigh = "100";
+				if(soundGroup.getCheckedRadioButtonId() == R.id.soundLow)
+				{
+					soundHigh = "50";
+				}
+				if(soundGroup.getCheckedRadioButtonId() == R.id.soundHigh)
+				{
+					soundLow = "50";
+				}
+				
+				String roomType = "Group Study Room";
+				
+				new roomsAsync(getActivity(),lightLow, lightHigh, soundLow,
+								soundHigh, tempLow, tempHigh, roomType).execute();
 			}
 		});
 	     return view;
 	    }
-	 
-	 public String getTemp()
-	 { 
-		return tv.getText().toString(); 
-	 }
 	 
 	 
 }
@@ -69,10 +111,41 @@ public class QuestionFragment extends Fragment{
  */
 class roomsAsync extends AsyncTask<String,Void,String>
 {
+	private ProgressDialog dialog;
+	Context c;
+	int tempLow;
+	int tempHigh;
+	String lightLow;
+	String lightHigh;
+	String soundLow;
+	String soundHigh;
+	String roomType;
+	roomsAsync(Context ctx, String ll, String lh, String sl, String sh, String tl, String th, String rtype)
+	{
+		c = ctx;
+		lightLow = ll;
+		lightHigh = lh;
+		soundLow = sl;
+		soundHigh = sh;
+		tempLow = Integer.parseInt(tl);
+		tempHigh = Integer.parseInt(th);
+		roomType = rtype;
+		
+		Log.d("val",lightLow+" "+lightHigh+" "+soundLow+" "+soundHigh+" "+tempLow+" "+
+					tempHigh+" "+roomType);
+		dialog = new ProgressDialog(c);
+	}
 	private final String NAMESPACE = "http://tempuri.org/";
 	private final String URL = "http://win-res02.csc.ncsu.edu/MediationService.svc";
 	private final String SOAP_ACTION = "http://tempuri.org/IMediationService/GetMatchingRooms";
 	private final String GET_ROOMS_METHOD_NAME = "GetMatchingRooms";
+	
+	
+	@Override
+    protected void onPreExecute() {
+        dialog.setMessage("Finding list of places, please wait.");
+        dialog.show();
+    }
 	
 	@Override
 	protected String doInBackground(String... params) {
@@ -83,8 +156,17 @@ class roomsAsync extends AsyncTask<String,Void,String>
 	@Override
 	protected void onPostExecute(String result) {
 		super.onPostExecute(result);
+		
+		if (dialog.isShowing()) {
+            dialog.dismiss();
+        }
+		
 		Log.d("OnPostExe",result);
-		//Intent i = new Intent(this,DisplayRoomsActivity.class);
+//		EditText etn = QuestionFragment.getActivity().findViewById(R.id.roomname);
+		//c.actionBar.setSelectedNavigationItem(0);
+		Intent i = new Intent(c,DisplayRoomsActivity.class);
+		i.putExtra("rooms", result);
+		c.startActivity(i);
 		/*Toast.makeText(,"", Toast.LENGTH_LONG).show();
 		Toast.*/
 	}
@@ -101,34 +183,45 @@ class roomsAsync extends AsyncTask<String,Void,String>
 		
 		SoapObject request = new SoapObject(NAMESPACE, GET_ROOMS_METHOD_NAME);
 		//Property which holds input parameters
-		PropertyInfo light = new PropertyInfo();
-		light.setType(String.class);
-		//light.setType(type);
-		light.setName("light");
-		light.setValue("99");
+		PropertyInfo lightHi = new PropertyInfo();
+		lightHi.setType(String.class);
+		lightHi.setName("lightHi");
+		lightHi.setValue(lightHigh);
 		
-		PropertyInfo sound = new PropertyInfo();
-		sound.setType(String.class);
-		sound.setName("sound");
-		sound.setValue("23");
+		PropertyInfo lightLo = new PropertyInfo();
+		lightLo.setType(String.class);
+		lightLo.setName("lightLo");
+		lightLo.setValue(lightLow);
+		
+		PropertyInfo soundHi = new PropertyInfo();
+		soundHi.setType(String.class);
+		soundHi.setName("soundHi");
+		soundHi.setValue(soundHigh);
+		
+		PropertyInfo soundLo = new PropertyInfo();
+		soundLo.setType(String.class);
+		soundLo.setName("soundLo");
+		soundLo.setValue(soundLow);
 		
 		PropertyInfo tempHi = new PropertyInfo();
 		tempHi.setType(int.class);
 		tempHi.setName("tempHi");
-		tempHi.setValue(85);
+		tempHi.setValue(tempHigh);
 		
 		PropertyInfo tempLo = new PropertyInfo();
 		tempLo.setType(int.class);
 		tempLo.setName("tempLo");
-		tempLo.setValue(60);
+		tempLo.setValue(tempLow);
 		
 		PropertyInfo type = new PropertyInfo();
 		type.setType(String.class);
 		type.setName("type");
 		type.setValue("group_study_room");
 		
-		request.addProperty(light);
-		request.addProperty(sound);
+		request.addProperty(lightHi);
+		request.addProperty(lightLo);
+		request.addProperty(soundHi);
+		request.addProperty(soundLo);
 		request.addProperty(tempHi);
 		request.addProperty(tempLo);
 		request.addProperty(type);
@@ -147,6 +240,7 @@ class roomsAsync extends AsyncTask<String,Void,String>
 		try {
 			//Invoke web service
 			androidHttpTransport.call(SOAP_ACTION, envelope);
+			String xml = androidHttpTransport.responseDump;
 			if (envelope.bodyIn instanceof SoapFault)
 			{
 			    final SoapFault sf = (SoapFault) envelope.bodyIn;

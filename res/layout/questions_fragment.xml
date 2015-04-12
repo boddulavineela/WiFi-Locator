@@ -25,30 +25,41 @@
         android:text="Light"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
-    <LinearLayout
+  <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="15dp" >
-    
+        android:orientation="horizontal"
+         >
 
-    <CheckBox
-        android:id="@+id/checkBox1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Dim" />
+      
+        <RadioGroup
+            android:id="@+id/lightGroup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+             >
 
-    <CheckBox
-        android:id="@+id/checkBox2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Bright" />
+            <RadioButton
+                android:id="@+id/lightDim"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Dim" />
 
-    <CheckBox
-        android:id="@+id/checkBox3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Any" />
-    
+            <RadioButton
+                android:id="@+id/lightBright"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bright" />
+
+            <RadioButton
+                android:id="@+id/lightAny"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="Any" />
+            
+        </RadioGroup>
+
     </LinearLayout>
 
     <TextView
@@ -64,34 +75,44 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal" >
-    
 
-    <CheckBox
-        android:id="@+id/checkBox4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="High" />
+        <RadioGroup
+            android:id="@+id/soundGroup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+             >
 
-    <CheckBox
-        android:id="@+id/checkBox5"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Low" />
+            <RadioButton
+                android:id="@+id/soundHigh"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="High" />
 
-    <CheckBox
-        android:id="@+id/checkBox6"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Any" />
-    
+            <RadioButton
+                android:id="@+id/soundLow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Low" />
+
+            <RadioButton
+                android:id="@+id/soundAny"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="Any" />
+            
+        </RadioGroup>
+        
+       
     </LinearLayout>
 
     <TextView
         android:id="@+id/textView4"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Tempertature Range"
         android:layout_marginTop="10dp"
+        android:text="Tempertature Range"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <LinearLayout
@@ -99,58 +120,68 @@
         android:layout_height="wrap_content" >
 
         <EditText
-            android:id="@+id/editText1"
+            android:id="@+id/tempLo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ems="10"
+            android:hint="Numeric Low"
             android:inputType="number" />
 
-    <TextView
-        android:id="@+id/textView5"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:text="To"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        <TextView
+            android:id="@+id/textView5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:text="To"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
 
-    <EditText
-        android:id="@+id/editText2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:ems="10"
-        android:inputType="number" >
+        <EditText
+            android:id="@+id/tempHi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint="Numeric High"
+            android:inputType="number" >
 
-        <requestFocus />
-    </EditText>
-    
-       </LinearLayout>
+            <requestFocus />
+        </EditText>
+    </LinearLayout>
 
     <TextView
         android:id="@+id/textView6"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Room Type"
         android:layout_marginTop="10dp"
+        android:text="Place Type"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content" >
-
-        <CheckBox
-            android:id="@+id/checkBox7"
+        
+        <RadioGroup
+            android:id="@+id/roomGroup"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Room" />
+            android:orientation="horizontal"
+             >
 
-        <CheckBox
-            android:id="@+id/checkBox8"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Any" />
+        	<RadioButton
+                android:id="@+id/typeRoom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Group Study Room" />
 
+            <RadioButton
+                android:id="@+id/typeAny"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="Any" />
+        
+        </RadioGroup>
     </LinearLayout>
 
     <Button

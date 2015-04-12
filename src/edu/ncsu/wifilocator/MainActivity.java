@@ -25,10 +25,15 @@ import org.ksoap2.transport.HttpTransportSE;
 import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.FragmentTransaction;
+import android.app.ActionBar.Tab;
+import android.app.ActionBar.TabListener;
+import android.app.ProgressDialog;
+import android.app.TabActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
@@ -37,6 +42,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.InputMethodManager;
@@ -64,6 +70,69 @@ import com.google.android.gms.maps.model.PolylineOptions;
 
 public class MainActivity extends FragmentActivity implements ListView.OnItemClickListener {
 	
+	@Override
+	protected void onDestroy() {
+		// TODO Auto-generated method stub
+		super.onDestroy();
+		Log.d("MAP","onDestroy called");
+		if(map == null)
+		{
+			Log.d("MAP","map null");
+		}
+		else
+		{
+			map.setIndoorEnabled(false);
+			Log.d("MAP","indoor : "+map.isIndoorEnabled());
+		}
+	}
+
+
+	@Override
+	protected void onPause() {
+		// TODO Auto-generated method stub
+		super.onPause();
+		Log.d("MAP","onPause called");
+		if(map == null)
+		{
+			Log.d("MAP","map null");
+		}
+		else
+		{
+			map.setIndoorEnabled(false);
+			Log.d("MAP","indoor : "+map.isIndoorEnabled());
+		}
+		
+	}
+
+
+	@Override
+	protected void onResume() {
+		// TODO Auto-generated method stub
+		super.onResume();
+		Log.d("MAP","onResume called");
+		if(map == null)
+		{
+			Log.d("MAP","map null");
+		}
+		else
+		{
+			map.setIndoorEnabled(true);
+			Log.d("MAP","indoor : "+map.isIndoorEnabled());
+		}
+	}
+
+
+	@Override
+	protected void onRestart() {
+		// TODO Auto-generated method stub
+		super.onRestart();
+		Log.d("MAP","restart called");
+		if(map == null)
+		{
+			Log.d("MAP","map null");
+		}
+	}
+
 	// constants for use in calling the web service
 	private final String NAMESPACE = "http://tempuri.org/";
 	private final String URL = "http://win-res02.csc.ncsu.edu/MediationService.svc";
@@ -84,6 +153,7 @@ public class MainActivity extends FragmentActivity implements ListView.OnItemCli
 	EditText et;
 	FrameLayout f;
 	Button roomSearch;
+	ActionBar actionBar;
     
 	static final LatLng CENTER = new LatLng(35.769301, -78.676406);	//library center on map
 	LatLng lines[] = new LatLng[100];
@@ -115,8 +185,15 @@ public class MainActivity extends FragmentActivity implements ListView.OnItemCli
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		Log.d("MAP","onCreate called");
+		if(map == null)
+		{
+			Log.d("MAP","map null");
+		}
+		
 		MapsInitializer.initialize(this);
-		final ActionBar actionBar = getActionBar();
+		actionBar = getActionBar();
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 		
 		// Create a tab listener that is called when the user changes tabs.
@@ -149,6 +226,7 @@ public class MainActivity extends FragmentActivity implements ListView.OnItemCli
 	        	{
 	        		if(f!=null)	// if the suggest tab is present on the screen
 	        		{
+	        			Log.d(TAG,"Map clicked");
 	        			// show necessary elements of screen
 	        			f.setVisibility(android.view.View.VISIBLE);
 	        			et.setVisibility(android.view.View.VISIBLE);
@@ -185,11 +263,13 @@ public class MainActivity extends FragmentActivity implements ListView.OnItemCli
 	    actionBar.addTab(
                 actionBar.newTab()
                         .setText("Map")
+                        .setTag("Map")
                         .setTabListener(tabListener));
 
 	    actionBar.addTab(
                 actionBar.newTab()
                         .setText("Suggest")
+                        .setTag("Suggest")
                         .setTabListener(tabListener));
 	    
 	    // set layout of screen as activity_main
@@ -226,8 +306,10 @@ public class MainActivity extends FragmentActivity implements ListView.OnItemCli
         mDrawerList.setOnItemClickListener(this);
 
         //destination Edit Control
-      		et = (EditText) findViewById(R.id.editText1);
+      		et = (EditText) findViewById(R.id.roomname);
       		f = (FrameLayout) findViewById(R.id.frameLayout);
+      		
+      	building = map.getFocusedBuilding();
       	
       	//Button to trigger web service invocation
     		b = (Button) findViewById(R.id.button1);
@@ -243,18 +325,19 @@ public class MainActivity extends FragmentActivity implements ListView.OnItemCli
     				.title(location));
     				marker.showInfoWindow();
     				
-    				building = map.getFocusedBuilding();
+//    				building = map.getFocusedBuilding();
 
     				/*if (building == null) {
     				 // return null;
     					Log.d("Indoor","NULL");
     				}*/
-    				
+    				Log.d("button",et.getText().toString());
     				//Check if location & destination is not empty
-    				if (et.getText().length() != 0 && et.getText().toString() != "" && location.length() != 0 && location.toString() != "") 
+    				if (et.getText().toString().trim().length() != 0 && et.getText().toString().trim() != "" && location.length() != 0 && location.toString() != "") 
     				{
+    					Log.d("button","inside: "+et.getText().toString().trim()+" "+et.getText().toString().trim().length());
     					//Get the destination value
-    					destination = et.getText().toString();
+    					destination = et.getText().toString().trim();
     					
     					//id destination is same as current location, display an Alert 
     					//saying destination reached
@@ -267,6 +350,7 @@ public class MainActivity extends FragmentActivity implements ListView.OnItemCli
     					    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
     					        @Override
 								public void onClick(DialogInterface dialog, int which) { 
+    					        	result = null;
     					        	dialog.cancel();
     					        	return;
     					        }
@@ -276,7 +360,7 @@ public class MainActivity extends FragmentActivity implements ListView.OnItemCli
     					}
     					else	//otherwise get route from current location to destination
     					{
-	    					AsyncCallWS task = new AsyncCallWS();
+	    					AsyncCallWS task = new AsyncCallWS(MainActivity.this);
 	    					task.execute();
     					}
     					
@@ -287,12 +371,79 @@ public class MainActivity extends FragmentActivity implements ListView.OnItemCli
     				} 
     				else 
     				{
-    					et.setText("Please enter location");
+    					//et.setText("Please enter location");
+    					et.setText("");
+    					et.setHint("Please enter location");
+    					result = null;
     				}
     			}
     		});
+    		
+    		
+    		// check if intent is called from displayRoomsActivity, if it is,
+    		// then search for route to the clicked location
+    		Intent callingIntent = getIntent();
+    		if(callingIntent.getBooleanExtra("calledFromDisplayRooms", false))
+    		{
+    			String dest = callingIntent.getStringExtra("destination");
+    			Toast.makeText(getApplicationContext(), dest, Toast.LENGTH_SHORT).show();
+    			Log.d("ListOfRooms",dest);
+    			//building = map.getFocusedBuilding();
+    			map.setIndoorEnabled(true);
+    			//actionBar.getTabAt(0).select();
+    			//actionBar.setSelectedNavigationItem(0);
+    			if(map == null)
+    			{
+    				Log.d("MAP","map null");
+    			}
+    			Log.d("MAP","map isIndoorEnabled "+map.isIndoorEnabled());
+    		
+    			map.setIndoorEnabled(true);
+    			Log.d("MAP","map isIndoorEnabled after change "+map.isIndoorEnabled());
+    			et.setText(dest.trim());
+    			map.moveCamera(CameraUpdateFactory.newLatLngZoom(CENTER, 20));
+    			map.animateCamera(CameraUpdateFactory.zoomTo(20), 2000, null);
+    			
+    			Log.d("MAP","current zoom levele is "+map.getCameraPosition().zoom);
+    			Log.d("MAP","max level is "+map.getMaxZoomLevel());
+    			//IndoorBuilding bldg = map.getFocusedBuilding();
+    			/*IndoorLevel il1 = bldg.getLevels().get(1) ;
+    			il1.activate();*/
+    			//mDrawerLayout.callOnClick();
+    			b.performClick();
+    			
+    			
+    		}
         
 	}
+
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+
+		switch(item.getItemId())
+		{
+		case R.id.content:
+			sendContent();
+			return true;
+			
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+		
+	}
+
+
+	private void sendContent() {
+		Toast.makeText(getApplicationContext(), "Content", Toast.LENGTH_SHORT).show();
+		
+		// Show dialog box with drop down
+		contentDialogFragment t = new contentDialogFragment();
+		t.show(getFragmentManager(), "TAGS");
+		
+		
+	}
+
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -491,6 +642,19 @@ public class MainActivity extends FragmentActivity implements ListView.OnItemCli
      *  
      */
 	private class AsyncCallWS extends AsyncTask<String, Void, Void> {
+		
+		private ProgressDialog dialog;
+		
+		public AsyncCallWS(Context c) {
+			dialog = new ProgressDialog(c);
+		}
+		
+		@Override
+	    protected void onPreExecute() {
+	        dialog.setMessage("Calculating Route, please wait.");
+	        dialog.show();
+	    }
+		
 		@Override
 		protected Void doInBackground(String... params) {
 			Log.i(TAG, "doInBackground");
@@ -501,6 +665,9 @@ public class MainActivity extends FragmentActivity implements ListView.OnItemCli
 		@Override
 		protected void onPostExecute(Void res) {
 			Log.i(TAG, "onPostExecute");
+			if (dialog.isShowing()) {
+	            dialog.dismiss();
+	        }
 			
 			//if no route found, display appropriate alert
 			if(result == null)

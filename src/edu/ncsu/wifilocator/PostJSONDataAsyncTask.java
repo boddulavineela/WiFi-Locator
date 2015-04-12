@@ -19,6 +19,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.Toast;
 
 public class PostJSONDataAsyncTask extends AsyncTask<Object, Void, String>{
 private Context context;
@@ -68,7 +69,7 @@ protected String doInBackground(Object... arg){
 			httppost.setEntity(tmp);
 
 			responseBody = httpclient.execute(httppost, responseHandler);
-
+			//Toast.makeText(context, "Location Updated: "+ responseBody.toString(), Toast.LENGTH_SHORT).show();
 			Log.d("Test JSON", responseBody.toString());
 		}
 		Log.d("Test null JSON", responseBody.toString());
