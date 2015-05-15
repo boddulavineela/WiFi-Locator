@@ -41,10 +41,12 @@ import android.speech.tts.TextToSpeech.OnInitListener;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -53,6 +55,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -69,6 +72,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 public class MainActivity extends FragmentActivity implements ListView.OnItemClickListener {
+	
 	
 	@Override
 	protected void onDestroy() {
@@ -137,9 +141,13 @@ public class MainActivity extends FragmentActivity implements ListView.OnItemCli
 	private final String NAMESPACE = "http://tempuri.org/";
 	private final String URL = "http://win-res02.csc.ncsu.edu/MediationService.svc";
 	private final String SOAP_ACTION = "http://tempuri.org/IMediationService/GetPlan";
+	private final String UPDATE_SOAP_ACTION = "http://tempuri.org/IMediationService/UpdateLocation";
 	private final String METHOD_NAME = "GetPlan";
+	private final String UPDATE_METHOD_NAME = "UpdateLocation";
 	
 	private String TAG = "NCSU";	//for logging
+	
+	boolean UpdateContent = false;
 	
 	private static String location;
 	private static LatLng CurrentCoords;
@@ -309,6 +317,18 @@ public class MainActivity extends FragmentActivity implements ListView.OnItemCli
       		et = (EditText) findViewById(R.id.roomname);
       		f = (FrameLayout) findViewById(R.id.frameLayout);
       		
+      		et.setOnEditorActionListener(new OnEditorActionListener() {
+				
+				@Override
+				public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+					if (actionId == EditorInfo.IME_ACTION_SEARCH) 
+					{
+						Log.d("SEARCH",v.getText().toString());						
+						b.performClick();
+					}
+					return true;
+				}
+			});
       	building = map.getFocusedBuilding();
       	
       	//Button to trigger web service invocation
@@ -339,7 +359,7 @@ public class MainActivity extends FragmentActivity implements ListView.OnItemCli
     					//Get the destination value
     					destination = et.getText().toString().trim();
     					
-    					//id destination is same as current location, display an Alert 
+    					//if destination is same as current location, display an Alert 
     					//saying destination reached
     					if(destination.equalsIgnoreCase(location))
     					{
@@ -360,6 +380,8 @@ public class MainActivity extends FragmentActivity implements ListView.OnItemCli
     					}
     					else	//otherwise get route from current location to destination
     					{
+    						UpdateContent = true;
+    						Toast.makeText(MainActivity.this, "Calling AsyncCall", Toast.LENGTH_SHORT).show();
 	    					AsyncCallWS task = new AsyncCallWS(MainActivity.this);
 	    					task.execute();
     					}
@@ -466,8 +488,17 @@ public class MainActivity extends FragmentActivity implements ListView.OnItemCli
 		{
 			isSame = true;
 		}
+		/////////////////////
+		if (!loc.equals(location) && UpdateContent)
+		{
+			//call update location 
+			Toast.makeText(MainActivity.this, "Calling update location", Toast.LENGTH_SHORT).show();
+			AsyncUpdate Updatetask = new AsyncUpdate(MainActivity.this);
+			Updatetask.execute();
+		}
 		CurrentCoords = cor;
 		location = loc;
+		
 		//clear map
 		map.clear();
 		
@@ -476,6 +507,7 @@ public class MainActivity extends FragmentActivity implements ListView.OnItemCli
 		.position(cor)
 		.title(loc));
 		marker.showInfoWindow();
+		
 		
 		// plot current route, if any
 		plotLines(MainActivity.this.result);
@@ -499,6 +531,65 @@ public class MainActivity extends FragmentActivity implements ListView.OnItemCli
 	public void updateStatus(String s){
 		Toast.makeText(getBaseContext(), s, Toast.LENGTH_LONG).show();
 	}
+	
+public void updatePath(String location) {
+		
+//		Toast.makeText(MainActivity.this, "getPath Called", Toast.LENGTH_SHORT).show();		//Create request
+		SoapObject request = new SoapObject(NAMESPACE, UPDATE_METHOD_NAME);
+		//Property which holds input parameters
+		PropertyInfo locationPI = new PropertyInfo();
+		//Set Name
+		locationPI.setName("source");
+		//Set Value
+		locationPI.setValue(location);
+		//Set dataType
+		locationPI.setType(double.class);
+		//Add the property to request object
+		request.addProperty(locationPI);
+		//Create envelope
+		SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(
+				SoapEnvelope.VER11);
+		envelope.dotNet = true;
+		//Set output SOAP object
+		envelope.setOutputSoapObject(request);
+		//Create HTTP call object
+		HttpTransportSE androidHttpTransport = new HttpTransportSE(URL,80000);
+		androidHttpTransport.debug = true;
+		//androidHttpTransport.setXmlVersionTag("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+
+		try {
+			//Invoke web service
+			androidHttpTransport.call(UPDATE_SOAP_ACTION, envelope);
+			//Get the response, including Fault if any
+			if (envelope.bodyIn instanceof SoapFault)
+			{
+			    final SoapFault sf = (SoapFault) envelope.bodyIn;
+			    System.out.println(sf.faultstring);
+			}
+			SoapObject resp = (SoapObject) envelope.bodyIn;
+			//Assign it to path1 variable
+			String path1 = resp.toString();
+			Log.d("UPDATE",path1);
+			// if no route found, set result to null and return
+			if(path1.equalsIgnoreCase(NoRouteString))
+			{
+//				result = null;
+				return;				
+			}
+			else
+			{
+				//extract path from the response
+				int start = path1.indexOf('=');
+				int end = path1.indexOf(';');
+				String path = path1.substring(start+1, end);
+				result = path.split("\\r?\\n");
+				Log.d("UPDATE",path);
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
 	/**
 	 * @method getPath
@@ -510,7 +601,8 @@ public class MainActivity extends FragmentActivity implements ListView.OnItemCli
 	 * 
 	 */
 	public void getPath(String location, String destination) {
-		//Create request
+		
+//		Toast.makeText(MainActivity.this, "getPath Called", Toast.LENGTH_SHORT).show();		//Create request
 		SoapObject request = new SoapObject(NAMESPACE, METHOD_NAME);
 		//Property which holds input parameters
 		PropertyInfo locationPI = new PropertyInfo();
@@ -603,6 +695,10 @@ public class MainActivity extends FragmentActivity implements ListView.OnItemCli
         		}
         	}
     		
+        if(places.get(location) == null || results[0]==null)
+        	return;
+        
+        try {
         // add line on map from current location to first point	
     	map.addPolyline(new PolylineOptions()
         .add(places.get(location), places.get(results[0]))
@@ -629,8 +725,14 @@ public class MainActivity extends FragmentActivity implements ListView.OnItemCli
     	.position(places.get(results[results.length-1]))
     	.title(results[results.length-1])
     	.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+    	
+        
     	}
-  
+        catch(Exception e)
+        {
+        	return;
+        }
+    }
     }
 
     /**
@@ -644,9 +746,11 @@ public class MainActivity extends FragmentActivity implements ListView.OnItemCli
 	private class AsyncCallWS extends AsyncTask<String, Void, Void> {
 		
 		private ProgressDialog dialog;
+		private Context ctx;
 		
 		public AsyncCallWS(Context c) {
 			dialog = new ProgressDialog(c);
+			ctx = c;
 		}
 		
 		@Override
@@ -658,6 +762,7 @@ public class MainActivity extends FragmentActivity implements ListView.OnItemCli
 		@Override
 		protected Void doInBackground(String... params) {
 			Log.i(TAG, "doInBackground");
+			
 			getPath(location,destination);	// get the route
 			return null;
 		}
@@ -665,6 +770,7 @@ public class MainActivity extends FragmentActivity implements ListView.OnItemCli
 		@Override
 		protected void onPostExecute(Void res) {
 			Log.i(TAG, "onPostExecute");
+			Toast.makeText(ctx, "after getPath", Toast.LENGTH_SHORT).show();		//Create request
 			if (dialog.isShowing()) {
 	            dialog.dismiss();
 	        }
@@ -694,6 +800,41 @@ public class MainActivity extends FragmentActivity implements ListView.OnItemCli
 	}
 	
 	/**
+     * 
+     * @author ronak
+     *  AsyncCallWS
+     *  
+     *  
+     */
+	private class AsyncUpdate extends AsyncTask<String, Void, Void> {
+		
+		private Context ctx;
+		
+		public AsyncUpdate(Context c) {
+			ctx = c;
+		}
+		
+		@Override
+		protected Void doInBackground(String... params) {
+			Log.i(TAG, "doInBackground");
+			
+			updatePath(location);	// get the route
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(Void res) {
+			Log.i(TAG, "onPostExecute");
+			Toast.makeText(ctx, "after updatePath", Toast.LENGTH_SHORT).show();		//Create request
+			
+			//if no route found, display appropriate alert
+			// show the points on map
+			showPoints(getApplicationContext(),result);	
+		}
+
+	}
+	
+	/**
 	 * method showPoints
 	 * 
 	 * 
@@ -707,9 +848,10 @@ public class MainActivity extends FragmentActivity implements ListView.OnItemCli
 			{
 				application = (MainApplication) MainActivity.this.getApplication();
 				super.onPostExecute(response);
-				Log.d("wifiloc", response);
+				
 				if (response != null)
 				{
+					Log.d("wifiloc", response);
 					JSONObject json = null;
 					try{
 						json = new JSONObject(response);

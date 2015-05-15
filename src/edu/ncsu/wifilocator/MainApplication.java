@@ -33,7 +33,7 @@ public class MainApplication extends Application {
 	
 	WifiManager wifi;
 	BroadcastReceiver wifiDataReceiver = null;
-	DefaultHttpClient httpClient;		//to send th data
+	DefaultHttpClient httpClient;		//to send the data
 	Timer timer;
 	
 	public MainActivity mainActivity = null;
@@ -133,7 +133,7 @@ public class MainApplication extends Application {
         	                				if(mainActivity != null)
         	                                {
         	                					Log.d("wifiloc", "good to draw");
-        	                					Toast.makeText(getApplicationContext(), loc, Toast.LENGTH_SHORT).show();
+        	                					Toast.makeText(getApplicationContext(), "location is "+loc, Toast.LENGTH_SHORT).show();
         	                                    mainActivity.updateLocation(coordinate, loc);
         	                                    mainActivity.getCurrentloc(coordinate,loc);
         	                                }

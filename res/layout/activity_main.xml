@@ -38,16 +38,21 @@
         <EditText
             android:id="@+id/roomname"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="0.2"
+            android:background="#afacacac"
+            android:imeOptions="actionSearch"
+            android:layout_marginRight="10dp"
             android:singleLine="true" />
 
         <Button
             android:id="@+id/button1"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
+            android:background="#afacacac"
             android:text="@string/button1" >
+
 </Button>
     </LinearLayout>
 
